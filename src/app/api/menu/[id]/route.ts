@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 // PATCH /api/menu/[id] - Update menu item
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function PATCH(
     }
 
     const { itemType, itemName, price } = await request.json();
-    const itemId = params.id;
+    const { id: itemId } = await params;
 
     // Validate required fields
     if (!itemType || !itemName) {
@@ -49,7 +49,7 @@ export async function PATCH(
 // DELETE /api/menu/[id] - Delete menu item
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -57,7 +57,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const itemId = params.id;
+    const { id: itemId } = await params;
 
     await prisma.menuConfig.delete({
       where: { id: itemId },
