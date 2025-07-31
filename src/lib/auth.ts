@@ -17,32 +17,56 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
+          // First, try to authenticate against the database
           const user = await prisma.user.findUnique({
             where: {
               username: credentials.username as string,
             },
           });
 
-          if (!user) {
-            return null;
+          if (user) {
+            const isPasswordValid = await bcrypt.compare(
+              credentials.password as string,
+              user.password
+            );
+
+            if (isPasswordValid) {
+              return {
+                id: user.id,
+                username: user.username,
+                name: user.username, // NextAuth expects name field
+              };
+            }
           }
 
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-          );
+          // Fallback: Check against environment variables
+          const envUsername = process.env.APP_USERNAME || 'admin';
+          const envPassword = process.env.APP_PASSWORD || 'password123';
 
-          if (!isPasswordValid) {
-            return null;
+          if (credentials.username === envUsername && credentials.password === envPassword) {
+            return {
+              id: 'env-admin',
+              username: envUsername,
+              name: envUsername,
+            };
           }
 
-          return {
-            id: user.id,
-            username: user.username,
-            name: user.username, // NextAuth expects name field
-          };
+          return null;
         } catch (error) {
           console.error('Auth error:', error);
+          
+          // If database fails, fallback to environment variables
+          const envUsername = process.env.APP_USERNAME || 'admin';
+          const envPassword = process.env.APP_PASSWORD || 'password123';
+
+          if (credentials.username === envUsername && credentials.password === envPassword) {
+            return {
+              id: 'env-admin',
+              username: envUsername,
+              name: envUsername,
+            };
+          }
+
           return null;
         }
       },

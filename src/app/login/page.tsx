@@ -115,7 +115,7 @@ function LoginForm() {
             </div>
 
             <div className="text-center text-xs text-gray-500">
-              Default credentials: admin / password123
+              {/* Default credentials: admin / password123 */}
             </div>
           </form>
         </div>
