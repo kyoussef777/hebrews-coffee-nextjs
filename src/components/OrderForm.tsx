@@ -43,7 +43,7 @@ export default function OrderForm() {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          const grouped = data.data.reduce((acc: any, item: MenuConfig) => {
+          const grouped = data.data.reduce((acc: Record<string, MenuConfig[]>, item: MenuConfig) => {
             const key = `${item.itemType.toLowerCase()}s`;
             if (!acc[key]) acc[key] = [];
             acc[key].push(item);

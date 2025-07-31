@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnalyticsData, WaitTimeThresholds } from '@/types';
-import { Settings, Download, TrendingUp, Users, Coffee, DollarSign, Clock } from 'lucide-react';
+import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock } from 'lucide-react';
 
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);

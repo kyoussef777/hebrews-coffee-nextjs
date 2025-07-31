@@ -191,7 +191,7 @@ export default function OrdersTable() {
           <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'in_progress')}
             className="pl-10 pr-8 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
           >
             <option value="all">All Status</option>
