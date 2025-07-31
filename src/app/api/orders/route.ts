@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    let where: any = {};
+    const where: Record<string, unknown> = {};
 
     // Handle status filtering
     if (status === 'active') {
