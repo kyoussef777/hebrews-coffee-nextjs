@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, MenuItemType } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -38,41 +38,41 @@ export async function initializeDatabase() {
     if (menuCount === 0) {
       const defaultMenuItems = [
         // Drinks
-        { itemType: 'DRINK', itemName: 'Latte', price: 4.0 },
-        { itemType: 'DRINK', itemName: 'Coffee', price: 3.0 },
-        { itemType: 'DRINK', itemName: 'Cappuccino', price: 4.5 },
-        { itemType: 'DRINK', itemName: 'Americano', price: 3.5 },
-        { itemType: 'DRINK', itemName: 'Mocha', price: 5.0 },
-        { itemType: 'DRINK', itemName: 'Macchiato', price: 4.5 },
-        { itemType: 'DRINK', itemName: 'Espresso', price: 2.5 },
+        { itemType: MenuItemType.DRINK, itemName: 'Latte', price: 4.0 },
+        { itemType: MenuItemType.DRINK, itemName: 'Coffee', price: 3.0 },
+        { itemType: MenuItemType.DRINK, itemName: 'Cappuccino', price: 4.5 },
+        { itemType: MenuItemType.DRINK, itemName: 'Americano', price: 3.5 },
+        { itemType: MenuItemType.DRINK, itemName: 'Mocha', price: 5.0 },
+        { itemType: MenuItemType.DRINK, itemName: 'Macchiato', price: 4.5 },
+        { itemType: MenuItemType.DRINK, itemName: 'Espresso', price: 2.5 },
         
         // Milk options
-        { itemType: 'MILK', itemName: 'Whole', price: null },
-        { itemType: 'MILK', itemName: 'Oat', price: null },
-        { itemType: 'MILK', itemName: 'Almond', price: null },
-        { itemType: 'MILK', itemName: 'Soy', price: null },
-        { itemType: 'MILK', itemName: '2%', price: null },
-        { itemType: 'MILK', itemName: 'Skim', price: null },
-        { itemType: 'MILK', itemName: 'Coconut', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Whole', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Oat', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Almond', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Soy', price: null },
+        { itemType: MenuItemType.MILK, itemName: '2%', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Skim', price: null },
+        { itemType: MenuItemType.MILK, itemName: 'Coconut', price: null },
         
         // Syrups
-        { itemType: 'SYRUP', itemName: 'Vanilla', price: null },
-        { itemType: 'SYRUP', itemName: 'Caramel', price: null },
-        { itemType: 'SYRUP', itemName: 'Hazelnut', price: null },
-        { itemType: 'SYRUP', itemName: 'Cinnamon', price: null },
-        { itemType: 'SYRUP', itemName: 'Peppermint', price: null },
-        { itemType: 'SYRUP', itemName: 'Chocolate', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Vanilla', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Caramel', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Hazelnut', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Cinnamon', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Peppermint', price: null },
+        { itemType: MenuItemType.SYRUP, itemName: 'Chocolate', price: null },
         
         // Foam options
-        { itemType: 'FOAM', itemName: 'Regular Foam', price: null },
-        { itemType: 'FOAM', itemName: 'Extra Foam', price: null },
-        { itemType: 'FOAM', itemName: 'Light Foam', price: null },
-        { itemType: 'FOAM', itemName: 'No Foam', price: null },
+        { itemType: MenuItemType.FOAM, itemName: 'Regular Foam', price: null },
+        { itemType: MenuItemType.FOAM, itemName: 'Extra Foam', price: null },
+        { itemType: MenuItemType.FOAM, itemName: 'Light Foam', price: null },
+        { itemType: MenuItemType.FOAM, itemName: 'No Foam', price: null },
         
         // Temperature options
-        { itemType: 'TEMPERATURE', itemName: 'Hot', price: null },
-        { itemType: 'TEMPERATURE', itemName: 'Iced', price: null },
-        { itemType: 'TEMPERATURE', itemName: 'Extra Hot', price: null },
+        { itemType: MenuItemType.TEMPERATURE, itemName: 'Hot', price: null },
+        { itemType: MenuItemType.TEMPERATURE, itemName: 'Iced', price: null },
+        { itemType: MenuItemType.TEMPERATURE, itemName: 'Extra Hot', price: null },
       ];
       
       await prisma.menuConfig.createMany({
