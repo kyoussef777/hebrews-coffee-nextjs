@@ -270,7 +270,7 @@ export default function OrdersOverTimeChart() {
       </div>
 
       {/* Busy Hours Summary */}
-      {groupBy === 'hour' && data?.busyHours.length > 0 && (
+      {groupBy === 'hour' && data?.busyHours && data.busyHours.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-900 mb-3">🕐 Busiest Hours</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
