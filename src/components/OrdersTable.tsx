@@ -262,7 +262,7 @@ export default function OrdersTable() {
                       </div>
                       <div className="text-base text-gray-700">
                         {order.foam}, {order.temperature}
-                        {order.extraShot && <span className="ml-1 text-amber-600 font-medium">+ Extra Shot</span>}
+                        {order.extraShots > 0 && <span className="ml-1 text-amber-600 font-medium">+ {order.extraShots} Extra Shot{order.extraShots > 1 ? 's' : ''}</span>}
                       </div>
                       {order.notes && (
                         <div className="text-sm text-gray-500 mt-1">

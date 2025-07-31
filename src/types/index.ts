@@ -11,7 +11,7 @@ export interface Order {
   syrup?: string | null;
   foam?: string | null;
   temperature: string;
-  extraShot: boolean;
+  extraShots: number;
   notes?: string | null;
   status: OrderStatus;
   price: number;
@@ -52,7 +52,7 @@ export interface OrderFormData {
   syrup?: string;
   foam?: string;
   temperature: string;
-  extraShot: boolean;
+  extraShots: number;
   notes?: string;
 }
 

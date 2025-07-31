@@ -29,7 +29,7 @@ model Order {
   syrup        String?
   foam         String?
   temperature  String
-  extraShot    Boolean  @default(false) @map("extra_shot")
+  extraShots   Int      @default(0) @map("extra_shots")
   notes        String?
   status       OrderStatus @default(PENDING)
   price        Float    @default(0.0)

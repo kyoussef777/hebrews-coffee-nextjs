@@ -12,7 +12,7 @@ export default function OrderForm() {
     syrup: '',
     foam: '',
     temperature: 'Hot',
-    extraShot: false,
+    extraShots: 0,
     notes: '',
   });
 
@@ -149,7 +149,7 @@ export default function OrderForm() {
           syrup: '',
           foam: menuItems.foams[0]?.itemName || '',
           temperature: 'Hot',
-          extraShot: false,
+          extraShots: 0,
           notes: '',
         });
       } else {
@@ -169,212 +169,287 @@ export default function OrderForm() {
 
   const getCurrentPrice = () => {
     const drinkPrice = menuItems.drinks.find(d => d.itemName === formData.drink)?.price || 0;
-    const extraShotPrice = formData.extraShot ? 1.0 : 0;
-    return drinkPrice + extraShotPrice;
+    const extraShotsPrice = formData.extraShots * 1.0;
+    return drinkPrice + extraShotsPrice;
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Customer Name with Autocomplete */}
-      <div className="relative">
-        <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
-          Customer Name *
-        </label>
-        <input
-          id="customerName"
-          type="text"
-          required
-          value={formData.customerName}
-          onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-          onFocus={() => setShowCustomerDropdown(filteredCustomers.length > 0)}
-          onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-          placeholder="Enter customer name"
-        />
+      <form onSubmit={handleSubmit} className="h-screen overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 h-full p-2 md:p-4">
         
-        {/* Customer Autocomplete Dropdown */}
-        {showCustomerDropdown && (
-          <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-            {filteredCustomers.map((customer, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => {
-                  setFormData({ ...formData, customerName: customer });
-                  setShowCustomerDropdown(false);
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
-              >
-                {customer}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Drink Selection */}
-      <div>
-        <label htmlFor="drink" className="block text-sm font-medium text-gray-700 mb-2">
-          Drink *
-        </label>
-        <select
-          id="drink"
-          required
-          value={formData.drink}
-          onChange={(e) => setFormData({ ...formData, drink: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-        >
-          <option value="">Select a drink</option>
-          {menuItems.drinks.map((drink) => (
-            <option key={drink.id} value={drink.itemName}>
-              {drink.itemName} - ${drink.price?.toFixed(2)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Milk Selection */}
-      <div>
-        <label htmlFor="milk" className="block text-sm font-medium text-gray-700 mb-2">
-          Milk Type *
-        </label>
-        <select
-          id="milk"
-          required
-          value={formData.milk}
-          onChange={(e) => setFormData({ ...formData, milk: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-        >
-          {menuItems.milks.map((milk) => (
-            <option key={milk.id} value={milk.itemName}>
-              {milk.itemName}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Two-column layout for smaller fields */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Syrup Selection */}
-        <div>
-          <label htmlFor="syrup" className="block text-sm font-medium text-gray-700 mb-2">
-            Syrup (Optional)
-          </label>
-          <select
-            id="syrup"
-            value={formData.syrup}
-            onChange={(e) => setFormData({ ...formData, syrup: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-          >
-            <option value="">No syrup</option>
-            {menuItems.syrups.map((syrup) => (
-              <option key={syrup.id} value={syrup.itemName}>
-                {syrup.itemName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Foam Selection */}
-        <div>
-          <label htmlFor="foam" className="block text-sm font-medium text-gray-700 mb-2">
-            Foam
-          </label>
-          <select
-            id="foam"
-            value={formData.foam}
-            onChange={(e) => setFormData({ ...formData, foam: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-          >
-            {menuItems.foams.map((foam) => (
-              <option key={foam.id} value={foam.itemName}>
-                {foam.itemName}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Temperature Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Temperature *
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {menuItems.temperatures.map((temp) => (
-            <label key={temp.id} className="flex items-center">
-              <input
-                type="radio"
-                name="temperature"
-                value={temp.itemName}
-                checked={formData.temperature === temp.itemName}
-                onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
-                className="mr-2 text-amber-600 focus:ring-amber-500"
-              />
-              <span className="text-sm">{temp.itemName}</span>
+        {/* Left Column - Customer & Drink */}
+        <div className="space-y-3">
+          {/* Customer Name */}
+          <div className="relative">
+            <label htmlFor="customerName" className="block text-sm font-semibold text-gray-900 mb-2">
+              Customer Name
             </label>
-          ))}
-        </div>
-      </div>
+            <input
+              id="customerName"
+              type="text"
+              required
+              value={formData.customerName}
+              onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+              onFocus={() => setShowCustomerDropdown(filteredCustomers.length > 0)}
+              onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
+              placeholder="Enter customer name"
+            />
+            
+            {/* Customer Autocomplete Dropdown */}
+            {showCustomerDropdown && (
+              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
+                {filteredCustomers.map((customer, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, customerName: customer });
+                      setShowCustomerDropdown(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 text-sm"
+                  >
+                    {customer}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {/* Extra Shot */}
-      <div className="flex items-center">
-        <input
-          id="extraShot"
-          type="checkbox"
-          checked={formData.extraShot}
-          onChange={(e) => setFormData({ ...formData, extraShot: e.target.checked })}
-          className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-        />
-        <label htmlFor="extraShot" className="ml-2 block text-sm text-gray-700">
-          Extra Shot (+$1.00)
-        </label>
-      </div>
-
-      {/* Notes */}
-      <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-          Special Instructions (Optional)
-        </label>
-        <textarea
-          id="notes"
-          rows={3}
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
-          placeholder="Any special requests or modifications..."
-        />
-      </div>
-
-      {/* Price Display */}
-      {formData.drink && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
-          <div className="text-lg font-semibold text-amber-800">
-            Total: ${getCurrentPrice().toFixed(2)}
+          {/* Drink Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Select Drink
+            </label>
+            <div className="grid grid-cols-1 gap-2 max-h-94 overflow-y-auto">
+              {menuItems.drinks.map((drink) => (
+                <button
+                  key={drink.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, drink: drink.itemName })}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    formData.drink === drink.itemName
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="font-semibold text-sm">{drink.itemName}</div>
+                  <div className="text-base font-bold text-amber-600">${drink.price?.toFixed(2)}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={isSubmitting || !formData.customerName || !formData.drink}
-        className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isSubmitting ? (
-          <div className="flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            Creating Order...
+        {/* Middle Column - Options */}
+        <div className="space-y-3">
+          {/* Milk Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Milk Type
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {menuItems.milks.map((milk) => (
+                <button
+                  key={milk.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, milk: milk.itemName })}
+                  className={`p-2 rounded-lg border-2 text-center transition-all ${
+                    formData.milk === milk.itemName
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="font-medium text-xs">{milk.itemName}</div>
+                </button>
+              ))}
+            </div>
           </div>
-        ) : (
-          <>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Order
-          </>
-        )}
-      </button>
-    </form>
+
+          {/* Temperature Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Temperature
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {menuItems.temperatures.map((temp) => (
+                <button
+                  key={temp.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, temperature: temp.itemName })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.temperature === temp.itemName
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="font-bold text-sm">{temp.itemName}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Syrup Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Syrup
+            </label>
+            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, syrup: '' })}
+                className={`p-2 rounded-lg border-2 text-center transition-all ${
+                  formData.syrup === ''
+                    ? 'border-amber-500 bg-amber-50 text-amber-900'
+                    : 'border-gray-200 bg-white hover:border-amber-300'
+                }`}
+              >
+                <div className="font-medium text-xs">None</div>
+              </button>
+              {menuItems.syrups.map((syrup) => (
+                <button
+                  key={syrup.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, syrup: syrup.itemName })}
+                  className={`p-2 rounded-lg border-2 text-center transition-all ${
+                    formData.syrup === syrup.itemName
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="font-medium text-xs">{syrup.itemName}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Foam Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Foam
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {menuItems.foams.map((foam) => (
+                <button
+                  key={foam.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, foam: foam.itemName })}
+                  className={`p-2 rounded-lg border-2 text-center transition-all ${
+                    formData.foam === foam.itemName
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="font-medium text-xs">{foam.itemName}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Extras & Submit */}
+        <div className="space-y-3">
+          {/* Extra Shots */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Extra Shots
+            </label>
+            <div className="flex items-center space-x-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, extraShots: Math.max(0, formData.extraShots - 1) })}
+                className="w-8 h-8 rounded-full border-2 border-gray-300 bg-white hover:border-amber-300 flex items-center justify-center text-gray-600 hover:text-amber-600 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={formData.extraShots <= 0}
+              >
+                −
+              </button>
+              
+              <div className="flex-1 text-center p-2 border-2 border-gray-200 rounded-lg bg-gray-50">
+                <div className="font-bold text-base text-gray-900">
+                  {formData.extraShots} {formData.extraShots === 1 ? 'Shot' : 'Shots'}
+                </div>
+                <div className="text-xs text-green-600 font-semibold">
+                  {formData.extraShots > 0 ? `+$${(formData.extraShots * 1.0).toFixed(2)}` : 'No extra shots'}
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, extraShots: Math.min(5, formData.extraShots + 1) })}
+                className="w-8 h-8 rounded-full border-2 border-gray-300 bg-white hover:border-amber-300 flex items-center justify-center text-gray-600 hover:text-amber-600 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={formData.extraShots >= 5}
+              >
+                +
+              </button>
+            </div>
+            
+            {/* Quick Selection Buttons */}
+            <div className="grid grid-cols-3 gap-1">
+              {[0, 1, 2].map((shots) => (
+                <button
+                  key={shots}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, extraShots: shots })}
+                  className={`p-2 rounded-lg border-2 text-center transition-all ${
+                    formData.extraShots === shots
+                      ? 'border-amber-500 bg-amber-50 text-amber-900'
+                      : 'border-gray-200 bg-white hover:border-amber-300'
+                  }`}
+                >
+                  <div className="text-xs font-medium">
+                    {shots === 0 ? 'None' : `${shots} Shot${shots > 1 ? 's' : ''}`}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label htmlFor="notes" className="block text-sm font-semibold text-gray-900 mb-2">
+              Notes
+            </label>
+            <textarea
+              id="notes"
+              rows={2}
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
+              placeholder="Special requests..."
+            />
+          </div>
+
+          {/* Price Display */}
+          {formData.drink && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-3">
+              <div className="text-xl font-bold text-amber-800">
+                Total: ${getCurrentPrice().toFixed(2)}
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting || !formData.customerName || !formData.drink}
+            className="w-full flex justify-center items-center py-3 px-4 border-2 border-transparent rounded-lg shadow-lg text-base font-bold text-white bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-4 focus:ring-amber-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Creating...
+              </div>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Order
+              </>
+            )}
+          </button>
+        </div>
+        </div>
+      </form>
 
       {/* Order Confirmation Popup */}
       {showOrderConfirmation && createdOrder && (
@@ -398,7 +473,7 @@ export default function OrderForm() {
                   <div className="text-sm text-gray-700">{createdOrder.drink}</div>
                   <div className="text-xs text-gray-500 mt-1">
                     {createdOrder.milk}, {createdOrder.syrup || 'No syrup'}, {createdOrder.foam}, {createdOrder.temperature}
-                    {createdOrder.extraShot && <span className="ml-1 text-amber-600">+ Extra Shot</span>}
+                    {createdOrder.extraShots > 0 && <span className="ml-1 text-amber-600">+ {createdOrder.extraShots} Extra Shot{createdOrder.extraShots > 1 ? 's' : ''}</span>}
                   </div>
                   {createdOrder.notes && (
                     <div className="text-xs text-gray-500 mt-1">

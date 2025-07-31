@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
     });
 
     const basePrice = drinkItem?.price || 0;
-    const extraShotPrice = body.extraShot ? 1.0 : 0;
-    const totalPrice = basePrice + extraShotPrice;
+    const extraShotsPrice = (body.extraShots || 0) * 1.0;
+    const totalPrice = basePrice + extraShotsPrice;
 
     // Create order (orderNumber will auto-increment)
     const order = await prisma.order.create({
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         syrup: body.syrup || null,
         foam: body.foam || null,
         temperature: body.temperature,
-        extraShot: body.extraShot,
+        extraShots: body.extraShots || 0,
         notes: body.notes?.trim() || null,
         price: totalPrice,
         status: 'PENDING',

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsData, WaitTimeThresholds } from '@/types';
 import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock } from 'lucide-react';
+import OrdersOverTimeChart from './OrdersOverTimeChart';
 
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -178,6 +179,11 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Orders Over Time Chart */}
+      <div className="mb-6">
+        <OrdersOverTimeChart />
       </div>
 
       {/* Charts and Detailed Analytics */}

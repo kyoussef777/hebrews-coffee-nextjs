@@ -175,7 +175,7 @@ export default function ActiveOrders() {
                 </h3>
                 <p className="text-sm text-gray-600">
                   {order.milk}, {order.syrup || 'No syrup'}, {order.foam}, {order.temperature}
-                  {order.extraShot && <span className="ml-1 text-amber-600">+ Extra Shot</span>}
+                  {order.extraShots > 0 && <span className="ml-1 text-amber-600">+ {order.extraShots} Extra Shot{order.extraShots > 1 ? 's' : ''}</span>}
                 </p>
                 {order.notes && (
                   <p className="text-sm text-gray-500 mt-1">

@@ -20,7 +20,7 @@ export async function GET() {
     const totalOrders = completedOrders.length;
     const totalRevenue = completedOrders.reduce((sum, order) => sum + order.price, 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const totalExtraShots = completedOrders.filter(order => order.extraShot).length;
+    const totalExtraShots = completedOrders.reduce((sum, order) => sum + (order.extraShots || 0), 0);
 
     // Calculate average wait time (approximation based on completed orders)
     const avgWaitTime = completedOrders.length > 0 

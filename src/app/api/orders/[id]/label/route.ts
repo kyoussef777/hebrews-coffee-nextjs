@@ -65,7 +65,7 @@ export async function GET(
     if (order.syrup) details.push(order.syrup);
     if (order.foam !== 'Regular Foam') details.push(order.foam);
     if (order.temperature !== 'Hot') details.push(order.temperature);
-    if (order.extraShot) details.push('Extra Shot');
+    if (order.extraShots > 0) details.push(`${order.extraShots} Extra Shot${order.extraShots > 1 ? 's' : ''}`);
 
     if (details.length > 0) {
       doc.setFontSize(6);
