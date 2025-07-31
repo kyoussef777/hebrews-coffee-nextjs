@@ -57,7 +57,7 @@ export default function OrdersOverTimeChart() {
 
   useEffect(() => {
     loadTimeSeriesData();
-  }, [dateRange, groupBy]);
+  }, [dateRange, groupBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTimeSeriesData = async () => {
     setIsLoading(true);
