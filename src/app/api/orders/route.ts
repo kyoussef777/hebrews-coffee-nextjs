@@ -87,18 +87,9 @@ export async function POST(request: NextRequest) {
     const extraShotPrice = body.extraShot ? 1.0 : 0;
     const totalPrice = basePrice + extraShotPrice;
 
-    // Get the next order number
-    const lastOrder = await prisma.order.findFirst({
-      orderBy: { orderNumber: 'desc' },
-      select: { orderNumber: true },
-    });
-    
-    const nextOrderNumber = (lastOrder?.orderNumber || 0) + 1;
-
-    // Create order
+    // Create order (orderNumber will auto-increment)
     const order = await prisma.order.create({
       data: {
-        orderNumber: nextOrderNumber,
         customerName: body.customerName.trim(),
         drink: body.drink,
         milk: body.milk,
