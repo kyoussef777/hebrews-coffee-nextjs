@@ -79,14 +79,6 @@ export async function GET(
       }
     }
 
-    // Time only (removed price)
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5);
-    const timeStr = new Date(order.createdAt).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    doc.text(timeStr, 58, 27, { align: 'right' });
 
     // Generate PDF buffer
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));

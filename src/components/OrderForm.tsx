@@ -175,8 +175,8 @@ export default function OrderForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="h-screen overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 h-full p-2 md:p-4">
+      <form onSubmit={handleSubmit} className="min-h-screen md:h-screen md:overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 h-full p-2 md:p-4 pb-20 md:pb-4">
         
         {/* Left Column - Customer & Drink */}
         <div className="space-y-3">
@@ -222,22 +222,25 @@ export default function OrderForm() {
             <label className="block text-sm font-semibold text-gray-900 mb-2">
               Select Drink
             </label>
-            <div className="grid grid-cols-1 gap-2 max-h-94 overflow-y-auto">
-              {menuItems.drinks.map((drink) => (
-                <button
-                  key={drink.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, drink: drink.itemName })}
-                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                    formData.drink === drink.itemName
-                      ? 'border-amber-500 bg-amber-50 text-amber-900'
-                      : 'border-gray-200 bg-white hover:border-amber-300'
-                  }`}
-                >
-                  <div className="font-semibold text-sm">{drink.itemName}</div>
-                  <div className="text-base font-bold text-amber-600">${drink.price?.toFixed(2)}</div>
-                </button>
-              ))}
+            <div className="scroll-container border border-gray-200 rounded-lg">
+              <div className="grid grid-cols-1 gap-2 max-h-48 md:max-h-96 overflow-y-auto p-2 scrollbar-thin">
+                {menuItems.drinks.map((drink) => (
+                  <button
+                    key={drink.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, drink: drink.itemName })}
+                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      formData.drink === drink.itemName
+                        ? 'border-amber-500 bg-amber-50 text-amber-900'
+                        : 'border-gray-200 bg-white hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="font-semibold text-sm">{drink.itemName}</div>
+                    <div className="text-base font-bold text-amber-600">${drink.price?.toFixed(2)}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="scroll-fade-bottom"></div>
             </div>
           </div>
         </div>
@@ -295,32 +298,35 @@ export default function OrderForm() {
             <label className="block text-sm font-semibold text-gray-900 mb-2">
               Syrup
             </label>
-            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, syrup: '' })}
-                className={`p-2 rounded-lg border-2 text-center transition-all ${
-                  formData.syrup === ''
-                    ? 'border-amber-500 bg-amber-50 text-amber-900'
-                    : 'border-gray-200 bg-white hover:border-amber-300'
-                }`}
-              >
-                <div className="font-medium text-xs">None</div>
-              </button>
-              {menuItems.syrups.map((syrup) => (
+            <div className="scroll-container border border-gray-200 rounded-lg">
+              <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 scrollbar-thin">
                 <button
-                  key={syrup.id}
                   type="button"
-                  onClick={() => setFormData({ ...formData, syrup: syrup.itemName })}
+                  onClick={() => setFormData({ ...formData, syrup: '' })}
                   className={`p-2 rounded-lg border-2 text-center transition-all ${
-                    formData.syrup === syrup.itemName
+                    formData.syrup === ''
                       ? 'border-amber-500 bg-amber-50 text-amber-900'
                       : 'border-gray-200 bg-white hover:border-amber-300'
                   }`}
                 >
-                  <div className="font-medium text-xs">{syrup.itemName}</div>
+                  <div className="font-medium text-xs">None</div>
                 </button>
-              ))}
+                {menuItems.syrups.map((syrup) => (
+                  <button
+                    key={syrup.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, syrup: syrup.itemName })}
+                    className={`p-2 rounded-lg border-2 text-center transition-all ${
+                      formData.syrup === syrup.itemName
+                        ? 'border-amber-500 bg-amber-50 text-amber-900'
+                        : 'border-gray-200 bg-white hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="font-medium text-xs">{syrup.itemName}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="scroll-fade-bottom"></div>
             </div>
           </div>
 

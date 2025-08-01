@@ -68,3 +68,44 @@ input, select, textarea {
 .nav-link:hover {
   color: #111827 !important;
 }
+
+/* Scrollbar styling for better UX */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #f59e0b #f3f4f6;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #f59e0b;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #d97706;
+}
+
+/* Scroll indicators - container wrapper */
+.scroll-container {
+  position: relative;
+}
+
+.scroll-fade-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 10;
+}
