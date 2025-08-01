@@ -1,6 +1,7 @@
 // Database types matching Prisma schema
 export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 export type MenuItemType = 'DRINK' | 'MILK' | 'SYRUP' | 'FOAM' | 'TEMPERATURE';
+export type InventoryCategory = 'COFFEE_BEANS' | 'MILK' | 'SYRUP' | 'EQUIPMENT' | 'SUPPLIES' | 'LABOR' | 'OTHER';
 
 export interface Order {
   id: string;
@@ -62,6 +63,25 @@ export interface MenuItemFormData {
   price?: number;
 }
 
+export interface InventoryCost {
+  id: string;
+  itemName: string;
+  category: InventoryCategory;
+  unitCost: number;
+  unit: string;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InventoryCostFormData {
+  itemName: string;
+  category: InventoryCategory;
+  unitCost: number;
+  unit: string;
+  notes?: string;
+}
+
 // API response types
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -77,16 +97,6 @@ export interface OrderCounts {
   total: number;
 }
 
-export interface CustomerHistoryItem {
-  customerName: string;
-  orderCount: number;
-  lastOrder: Date;
-  favoriteItems: {
-    drink?: string;
-    milk?: string;
-    syrup?: string;
-  };
-}
 
 export interface AnalyticsData {
   totalOrders: number;
@@ -104,6 +114,55 @@ export interface AnalyticsData {
     milk: [string, number];
     syrup: [string, number];
   };
+}
+
+export interface ProfitAnalytics {
+  summary: {
+    totalRevenue: number;
+    totalCosts: number;
+    totalProfit: number;
+    averageMargin: number;
+    totalOrders: number;
+  };
+  periods: {
+    monthly: {
+      revenue: number;
+      estimatedCosts: number;
+      estimatedProfit: number;
+      orders: number;
+    };
+    weekly: {
+      revenue: number;
+      estimatedCosts: number;
+      estimatedProfit: number;
+      orders: number;
+    };
+  };
+  costBreakdown: {
+    coffee: number;
+    milk: number;
+    syrups: number;
+    supplies: number;
+  };
+  inventory: {
+    totalInventoryCost: number;
+    totalItems: number;
+    byCategory: {
+      coffee: number;
+      milk: number;
+      syrups: number;
+      supplies: number;
+      equipment: number;
+      other: number;
+    };
+  };
+  recentOrders: Array<{
+    orderId: string;
+    revenue: number;
+    estimatedCost: number;
+    profit: number;
+    margin: number;
+  }>;
 }
 
 export interface WaitTimeThresholds {

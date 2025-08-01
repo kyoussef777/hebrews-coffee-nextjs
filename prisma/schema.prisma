@@ -60,6 +60,19 @@ model Settings {
   @@map("settings")
 }
 
+model InventoryCost {
+  id        String   @id @default(cuid())
+  itemName  String   @map("item_name")
+  category  InventoryCategory
+  unitCost  Float    @map("unit_cost")  // Cost per unit (e.g., per shot, per ml, etc.)
+  unit      String   // Unit of measurement (shots, ml, oz, etc.)
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("inventory_costs")
+}
+
 enum OrderStatus {
   PENDING     @map("pending")
   IN_PROGRESS @map("in_progress")
@@ -72,4 +85,14 @@ enum MenuItemType {
   SYRUP       @map("syrup")
   FOAM        @map("foam")
   TEMPERATURE @map("temperature")
+}
+
+enum InventoryCategory {
+  COFFEE_BEANS  @map("coffee_beans")
+  MILK          @map("milk")
+  SYRUP         @map("syrup")
+  EQUIPMENT     @map("equipment")
+  SUPPLIES      @map("supplies")
+  LABOR         @map("labor")
+  OTHER         @map("other")
 }

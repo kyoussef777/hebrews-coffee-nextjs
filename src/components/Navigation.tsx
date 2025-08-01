@@ -13,7 +13,8 @@ import {
   User,
   Bell,
   Volume2,
-  VolumeX
+  VolumeX,
+  Package,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -63,6 +64,12 @@ export default function Navigation({ orderCounts }: NavigationProps) {
       href: '/analytics',
       icon: BarChart3,
       current: pathname === '/analytics',
+    },
+    {
+      name: 'Inventory',
+      href: '/inventory',
+      icon: Package,
+      current: pathname === '/inventory',
     },
     {
       name: 'Menu Config',

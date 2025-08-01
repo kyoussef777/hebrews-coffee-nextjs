@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AnalyticsData, WaitTimeThresholds } from '@/types';
-import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock } from 'lucide-react';
+import { AnalyticsData, WaitTimeThresholds, ProfitAnalytics } from '@/types';
+import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock, Percent, Target, Package } from 'lucide-react';
 import OrdersOverTimeChart from './OrdersOverTimeChart';
 
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [profitAnalytics, setProfitAnalytics] = useState<ProfitAnalytics | null>(null);
   const [thresholds, setThresholds] = useState<WaitTimeThresholds>({ yellow: 5, red: 10 });
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -14,6 +15,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     loadAnalytics();
+    loadProfitAnalytics();
     loadThresholds();
   }, []);
 
@@ -28,6 +30,18 @@ export default function AnalyticsDashboard() {
       console.error('Error loading analytics:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadProfitAnalytics = async () => {
+    try {
+      const response = await fetch('/api/analytics/profit');
+      const data = await response.json();
+      if (data.success) {
+        setProfitAnalytics(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading profit analytics:', error);
     }
   };
 
@@ -180,6 +194,88 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Profit Analytics */}
+      {profitAnalytics && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900">Profit & Cost Analysis</h2>
+          
+          {/* Profit Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm border border-green-200 p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Target className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-green-900">${profitAnalytics.summary.totalProfit.toFixed(2)}</div>
+                  <div className="text-sm text-green-700">Total Profit</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg shadow-sm border border-emerald-200 p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <TrendingUp className="h-8 w-8 text-emerald-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-emerald-900">${(profitAnalytics.summary.totalRevenue - profitAnalytics.inventory.totalInventoryCost).toFixed(2)}</div>
+                  <div className="text-sm text-emerald-700">Net Profit</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg shadow-sm border border-amber-200 p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Package className="h-8 w-8 text-amber-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-amber-900">${profitAnalytics.inventory.totalInventoryCost.toFixed(2)}</div>
+                  <div className="text-sm text-amber-700">Inventory Cost</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg shadow-sm border border-purple-200 p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-purple-900">${profitAnalytics.periods.weekly.estimatedProfit.toFixed(2)}</div>
+                  <div className="text-sm text-purple-700">Weekly Profit</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cost Breakdown */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Cost Breakdown</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-amber-600">${profitAnalytics.costBreakdown.coffee.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Coffee</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">${profitAnalytics.costBreakdown.milk.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Milk</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">${profitAnalytics.costBreakdown.syrups.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Syrups</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-600">${profitAnalytics.costBreakdown.supplies.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Supplies</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* Orders Over Time Chart */}
       <div className="mb-6">

@@ -30,10 +30,7 @@ export default function OrderForm() {
     temperatures: [],
   });
 
-  const [customers, setCustomers] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filteredCustomers, setFilteredCustomers] = useState<string[]>([]);
-  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
 
@@ -61,28 +58,8 @@ export default function OrderForm() {
         }
       });
 
-    // Load customer list
-    fetch('/api/customers')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setCustomers(data.data);
-        }
-      });
   }, []);
 
-  useEffect(() => {
-    // Filter customers based on input
-    if (formData.customerName.length > 0) {
-      const filtered = customers.filter(customer =>
-        customer.toLowerCase().includes(formData.customerName.toLowerCase())
-      );
-      setFilteredCustomers(filtered.slice(0, 5));
-      setShowCustomerDropdown(filtered.length > 0);
-    } else {
-      setShowCustomerDropdown(false);
-    }
-  }, [formData.customerName, customers]);
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
@@ -191,30 +168,9 @@ export default function OrderForm() {
               required
               value={formData.customerName}
               onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-              onFocus={() => setShowCustomerDropdown(filteredCustomers.length > 0)}
-              onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
               className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
               placeholder="Enter customer name"
             />
-            
-            {/* Customer Autocomplete Dropdown */}
-            {showCustomerDropdown && (
-              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
-                {filteredCustomers.map((customer, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, customerName: customer });
-                      setShowCustomerDropdown(false);
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 text-sm"
-                  >
-                    {customer}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Drink Selection */}
