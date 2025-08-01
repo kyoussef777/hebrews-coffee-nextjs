@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnalyticsData, WaitTimeThresholds, ProfitAnalytics } from '@/types';
-import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock, Percent, Target, Package } from 'lucide-react';
+import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock, Target, Package } from 'lucide-react';
 import OrdersOverTimeChart from './OrdersOverTimeChart';
 
 export default function AnalyticsDashboard() {
@@ -220,7 +220,7 @@ export default function AnalyticsDashboard() {
                   <TrendingUp className="h-8 w-8 text-emerald-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-emerald-900">${(profitAnalytics.summary.totalRevenue - profitAnalytics.inventory.totalInventoryCost).toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-emerald-900">${(profitAnalytics.summary.totalRevenue - (profitAnalytics.inventory?.totalInventoryCost || 0)).toFixed(2)}</div>
                   <div className="text-sm text-emerald-700">Net Profit</div>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function AnalyticsDashboard() {
                   <Package className="h-8 w-8 text-amber-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-amber-900">${profitAnalytics.inventory.totalInventoryCost.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-amber-900">${(profitAnalytics.inventory?.totalInventoryCost || 0).toFixed(2)}</div>
                   <div className="text-sm text-amber-700">Inventory Cost</div>
                 </div>
               </div>
@@ -256,19 +256,19 @@ export default function AnalyticsDashboard() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Cost Breakdown</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-amber-600">${profitAnalytics.costBreakdown.coffee.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-amber-600">${(profitAnalytics.costBreakdown?.coffee || 0).toFixed(2)}</div>
                 <div className="text-sm text-gray-600">Coffee</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">${profitAnalytics.costBreakdown.milk.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-blue-600">${(profitAnalytics.costBreakdown?.milk || 0).toFixed(2)}</div>
                 <div className="text-sm text-gray-600">Milk</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">${profitAnalytics.costBreakdown.syrups.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-purple-600">${(profitAnalytics.costBreakdown?.syrups || 0).toFixed(2)}</div>
                 <div className="text-sm text-gray-600">Syrups</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">${profitAnalytics.costBreakdown.supplies.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-gray-600">${(profitAnalytics.costBreakdown?.supplies || 0).toFixed(2)}</div>
                 <div className="text-sm text-gray-600">Supplies</div>
               </div>
             </div>
@@ -408,8 +408,8 @@ export default function AnalyticsDashboard() {
                     type="number"
                     min="1"
                     max="30"
-                    value={settingsForm.yellow}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, yellow: parseInt(e.target.value) })}
+                    value={settingsForm.yellow || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, yellow: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
                     required
                   />
@@ -428,8 +428,8 @@ export default function AnalyticsDashboard() {
                     type="number"
                     min="1"
                     max="60"
-                    value={settingsForm.red}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, red: parseInt(e.target.value) })}
+                    value={settingsForm.red || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, red: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
                     required
                   />
