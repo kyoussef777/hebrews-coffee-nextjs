@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
@@ -39,7 +39,7 @@ export async function GET() {
       let estimatedCost = 0;
 
       // Base coffee cost (assume 1-2 shots per drink)
-      const baseShotsNeeded = 1 + (order.extraShot ? 1 : 0);
+      const baseShotsNeeded = 1 + order.extraShots;
       const coffeeCost = coffeeCosts.find(cost => 
         cost.itemName.toLowerCase().includes('coffee') || 
         cost.itemName.toLowerCase().includes('bean')

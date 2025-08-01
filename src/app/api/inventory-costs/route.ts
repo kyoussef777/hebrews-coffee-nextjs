@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { InventoryCostFormData } from '@/types';
+import { InventoryCostFormData, InventoryCategory } from '@/types';
 
 // GET /api/inventory-costs - Get all inventory costs
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
 
-    const where = category ? { category: category as any } : {};
+    const where = category ? { category: category as InventoryCategory } : {};
 
     const inventoryCosts = await prisma.inventoryCost.findMany({
       where,

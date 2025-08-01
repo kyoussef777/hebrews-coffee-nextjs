@@ -31,7 +31,7 @@ export default function InventoryManager() {
 
   useEffect(() => {
     loadInventoryCosts();
-  }, [selectedCategory]);
+  }, [selectedCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInventoryCosts = async () => {
     try {
