@@ -33,31 +33,32 @@ export async function GET(
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: [62, 29], // 62mm x 29mm label size for Brother QL-820
+      format: [90.3, 29], // 62mm x 29mm label size for Brother QL-820
     });
 
-    // Layout optimized for 62mm x 29mm Brother QL-820 label
+    // Layout optimized for 90.3mm x 29mm Brother QL-820 label
+    const centerX = 90.3 / 2; // 45.15mm center point
     
     // Header with Order ID
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text('HeBrews Coffee', 31, 4, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('HeBrews Coffee', centerX, 4, { align: 'center' });
     
     // Order Number
-    doc.setFontSize(7);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     const displayNumber = order.orderNumber || order.id.slice(-6).toUpperCase();
-    doc.text(`#${displayNumber}`, 31, 8, { align: 'center' });
+    doc.text(`#${displayNumber}`, centerX, 8, { align: 'center' });
     
     // Customer name - larger and prominent
-    doc.setFontSize(10);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(order.customerName, 31, 14, { align: 'center' });
+    doc.text(order.customerName, centerX, 14, { align: 'center' });
 
     // Drink name
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text(order.drink, 31, 18, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(order.drink, centerX, 18, { align: 'center' });
 
     // Details - condensed
     const details = [];
@@ -67,18 +68,30 @@ export async function GET(
     if (order.temperature !== 'Hot') details.push(order.temperature);
     if (order.extraShots > 0) details.push(`${order.extraShots} Extra Shot${order.extraShots > 1 ? 's' : ''}`);
 
+    let currentY = 22;
+    
     if (details.length > 0) {
-      doc.setFontSize(6);
+      doc.setFontSize(8);
       const detailsText = details.join(', ');
-      // Wrap text for the narrower label
-      const lines = doc.splitTextToSize(detailsText, 58);
-      let y = 22;
+      // Wrap text for the wider label
+      const lines = doc.splitTextToSize(detailsText, 85);
       for (const line of lines.slice(0, 2)) { // Limit to 2 lines
-        doc.text(line, 31, y, { align: 'center' });
-        y += 2.5;
+        doc.text(line, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
       }
     }
 
+    // Add notes if present
+    if (order.notes && order.notes.trim()) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      const notesText = `Note: ${order.notes.trim()}`;
+      const noteLines = doc.splitTextToSize(notesText, 85);
+      for (const line of noteLines.slice(0, 2)) { // Limit to 2 lines
+        doc.text(line, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
+      }
+    }
 
     // Generate PDF buffer
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
