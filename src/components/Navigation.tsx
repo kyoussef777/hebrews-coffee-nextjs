@@ -30,6 +30,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
   const { data: session } = useSession();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -160,6 +161,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
           <div className="flex items-center sm:hidden">
             <button
               type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-amber-500"
             >
               <MenuIcon className="h-6 w-6" />
@@ -167,6 +169,72 @@ export default function Navigation({ orderCounts }: NavigationProps) {
           </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden">
+          <div className="pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center px-4 py-2 text-base font-medium ${
+                    item.current
+                      ? 'text-amber-600 bg-amber-50 border-r-4 border-amber-600'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  {item.name}
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+          
+          {/* Mobile menu footer */}
+          <div className="pt-4 pb-3 border-t border-gray-200 bg-white">
+            <div className="flex items-center px-4">
+              <div className="flex items-center space-x-2 text-base font-medium text-gray-800">
+                <User className="h-5 w-5" />
+                <span>{session?.user?.username}</span>
+              </div>
+            </div>
+            <div className="mt-3 space-y-1 px-4">
+              {/* Sound Toggle */}
+              {mounted && (
+                <button
+                  onClick={toggleSound}
+                  className="flex items-center w-full px-0 py-2 text-base font-medium text-gray-700 hover:text-gray-900"
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="h-5 w-5 mr-3" />
+                  ) : (
+                    <VolumeX className="h-5 w-5 mr-3" />
+                  )}
+                  {soundEnabled ? 'Disable Sound' : 'Enable Sound'}
+                </button>
+              )}
+              
+              {/* Sign Out */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center w-full px-0 py-2 text-base font-medium text-gray-700 hover:text-gray-900"
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
