@@ -121,8 +121,29 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
   
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Scale factor for preview (500px width = 90.3mm, so ~5.54px per mm)
-  const scale = 500 / width;
+  // Responsive scale factor for preview
+  const getPreviewWidth = () => {
+    if (typeof window !== 'undefined') {
+      const screenWidth = window.innerWidth;
+      if (screenWidth < 640) return Math.min(screenWidth - 32, 350); // Mobile: screen width - padding, max 350px
+      if (screenWidth < 1024) return 400; // Tablet: 400px
+      return 500; // Desktop: 500px
+    }
+    return 500; // Default for SSR
+  };
+  
+  const [previewWidth, setPreviewWidth] = useState(getPreviewWidth());
+  const scale = previewWidth / width;
+
+  // Update preview width on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setPreviewWidth(getPreviewWidth());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Auto-hide help tip after 5 seconds
   useEffect(() => {
@@ -130,25 +151,37 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
     return () => clearTimeout(timer);
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, elementId: string) => {
     e.preventDefault();
     setSelectedElement(elementId);
-    setIsDragging(true);
     
-    const element = elements.find(el => el.id === elementId);
-    if (element && previewRef.current) {
-      const rect = previewRef.current.getBoundingClientRect();
-      const elementX = element.x * scale;
-      const elementY = element.y * scale;
+    // Only enable dragging on non-touch devices or if explicitly enabled
+    const isTouch = e.pointerType === 'touch';
+    if (!isTouch) {
+      setIsDragging(true);
       
-      setDragOffset({
-        x: e.clientX - rect.left - elementX,
-        y: e.clientY - rect.top - elementY,
-      });
+      const element = elements.find(el => el.id === elementId);
+      if (element && previewRef.current) {
+        const rect = previewRef.current.getBoundingClientRect();
+        const elementX = element.x * scale;
+        const elementY = element.y * scale;
+        
+        setDragOffset({
+          x: e.clientX - rect.left - elementX,
+          y: e.clientY - rect.top - elementY,
+        });
+      }
+    } else {
+      // On mobile, scroll to top to show the properties panel
+      if (window.innerWidth < 1024) {
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      }
     }
   }, [elements, scale]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging || !selectedElement || !previewRef.current) return;
     
     const rect = previewRef.current.getBoundingClientRect();
@@ -166,7 +199,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
     ));
   }, [isDragging, selectedElement, dragOffset, scale, width, height]);
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     setDragOffset({ x: 0, y: 0 });
   }, []);
@@ -274,13 +307,15 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Controls Panel */}
-      <div className="w-80 bg-white p-6 border-r border-gray-200 overflow-y-auto shadow-sm">
-        <div className="space-y-6">
-          {/* Label Settings */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Label Settings</h3>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile/Desktop responsive layout */}
+      <div className="lg:flex lg:min-h-screen">
+        {/* Controls Panel */}
+        <div className="w-full lg:w-80 bg-white p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto shadow-sm">
+          <div className="space-y-4 lg:space-y-6">
+            {/* Label Settings */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 lg:mb-4">Label Settings</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -290,12 +325,12 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Label configuration name"
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Width (mm)
@@ -304,7 +339,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={width}
                     onChange={(e) => setWidth(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="10"
                     max="200"
                     step="0.1"
@@ -319,7 +354,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="10"
                     max="100"
                     step="0.1"
@@ -329,10 +364,15 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
             </div>
           </div>
 
-          {/* Element Properties */}
-          {selectedElementData && (
+          {/* Element Properties or Selection Prompt */}
+          {selectedElementData ? (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Element Properties</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 lg:mb-4">
+                Element Properties
+                <span className="lg:hidden ml-2 text-sm font-normal text-gray-600">
+                  ({getElementDisplayName(selectedElementData.type)})
+                </span>
+              </h3>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -343,7 +383,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       X Position (mm)
@@ -352,7 +392,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                       type="number"
                       value={selectedElementData.x.toFixed(1)}
                       onChange={(e) => updateElement(selectedElementData.id, { x: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                       step="0.1"
                     />
                   </div>
@@ -365,7 +405,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                       type="number"
                       value={selectedElementData.y.toFixed(1)}
                       onChange={(e) => updateElement(selectedElementData.id, { y: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                       step="0.1"
                     />
                   </div>
@@ -379,13 +419,13 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={selectedElementData.fontSize}
                     onChange={(e) => updateElement(selectedElementData.id, { fontSize: parseInt(e.target.value) || 8 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="4"
                     max="24"
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Font Weight
@@ -393,7 +433,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     <select
                       value={selectedElementData.fontWeight}
                       onChange={(e) => updateElement(selectedElementData.id, { fontWeight: e.target.value as 'normal' | 'bold' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     >
                       <option value="normal">Normal</option>
                       <option value="bold">Bold</option>
@@ -407,7 +447,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     <select
                       value={selectedElementData.fontStyle}
                       onChange={(e) => updateElement(selectedElementData.id, { fontStyle: e.target.value as 'normal' | 'italic' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     >
                       <option value="normal">Normal</option>
                       <option value="italic">Italic</option>
@@ -422,7 +462,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   <select
                     value={selectedElementData.align}
                     onChange={(e) => updateElement(selectedElementData.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   >
                     <option value="left">Left</option>
                     <option value="center">Center</option>
@@ -430,10 +470,10 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   </select>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={() => duplicateElement(selectedElementData.id)}
-                    className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                   >
                     <Copy className="h-4 w-4" />
                     <span>Duplicate</span>
@@ -441,12 +481,24 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   
                   <button
                     onClick={() => deleteElement(selectedElementData.id)}
-                    className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>Delete</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          ) : (
+            <div className="lg:hidden">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                <div className="text-gray-600 mb-2">
+                  <Info className="h-5 w-5 mx-auto mb-2" />
+                  Select an Element
+                </div>
+                <p className="text-sm text-gray-500">
+                  Tap any element in the preview below to select and edit its properties.
+                </p>
               </div>
             </div>
           )}
@@ -455,7 +507,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
           <div className="space-y-3">
             <button
               onClick={handleSave}
-              className="w-full flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg"
+              className="w-full flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-lg font-medium"
             >
               <Save className="h-4 w-4" />
               <span>Save Configuration</span>
@@ -463,7 +515,7 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
             
             <button
               onClick={handlePreview}
-              className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+              className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium"
             >
               <Eye className="h-4 w-4" />
               <span>Preview Label</span>
@@ -473,36 +525,40 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
       </div>
 
       {/* Preview Panel */}
-      <div className="flex-1 p-6 overflow-auto bg-gray-50">
+      <div className="flex-1 p-4 lg:p-6 overflow-auto bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 space-y-3 lg:space-y-0">
             <h2 className="text-xl font-semibold text-gray-900">Label Preview</h2>
             {showHelpTip && (
-              <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
-                <Info className="h-4 w-4" />
-                <span>Use keyboard shortcuts: Del to delete, Ctrl+D to duplicate, Ctrl+S to save</span>
+              <div className="flex items-start space-x-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
+                <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="hidden lg:inline">Use keyboard shortcuts: Del to delete, Ctrl+D to duplicate, Ctrl+S to save</span>
+                  <span className="lg:hidden">Tap elements to select, then edit properties above</span>
+                </div>
                 <button 
                   onClick={() => setShowHelpTip(false)}
-                  className="ml-2 text-amber-600 hover:text-amber-800"
+                  className="ml-2 text-amber-600 hover:text-amber-800 text-lg leading-none"
                 >×</button>
               </div>
             )}
           </div>
           <div className="mb-4 text-sm text-gray-600">
-            Drag elements to reposition them. Click an element to select and edit its properties.
+            <span className="hidden lg:inline">Drag elements to reposition them. Click an element to select and edit its properties.</span>
+            <span className="lg:hidden">Tap elements to select, then adjust properties above. Use the numeric inputs for precise positioning.</span>
           </div>
           
           <div className="inline-block bg-white border-2 border-gray-300 shadow-lg relative">
             <div
               ref={previewRef}
-              className="relative bg-white cursor-crosshair"
+              className="relative bg-white cursor-crosshair touch-none"
               style={{
-                width: `${500}px`, // Larger preview width
+                width: `${previewWidth}px`,
                 height: `${height * scale}px`,
               }}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
             >
               {/* Grid lines for alignment */}
               <svg
@@ -522,13 +578,13 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
               {elements.map((element) => (
                 <div
                   key={element.id}
-                  className={`absolute cursor-pointer border-2 border-transparent hover:border-blue-400 ${
+                  className={`absolute cursor-pointer border-2 border-transparent hover:border-blue-400 active:border-blue-600 ${
                     selectedElement === element.id ? 'border-blue-600 bg-blue-50' : ''
-                  } px-1 py-px rounded whitespace-nowrap`}
+                  } px-1 py-px rounded whitespace-nowrap touch-manipulation`}
                   style={{
                     left: `${element.x * scale}px`,
                     top: `${element.y * scale}px`,
-                    fontSize: `${Math.max(10, element.fontSize * scale / 3.5)}px`, // Better scale conversion with larger minimum size
+                    fontSize: `${Math.max(8, element.fontSize * scale / 3.5)}px`, // Responsive font scaling with mobile minimum
                     fontWeight: element.fontWeight,
                     fontStyle: element.fontStyle,
                     textAlign: element.align,
@@ -536,8 +592,10 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     transformOrigin: 'top left',
                     maxWidth: element.maxWidth ? `${element.maxWidth * scale}px` : 'none',
                     lineHeight: '1.1',
+                    minHeight: '20px', // Minimum touch target size
+                    minWidth: '20px',
                   }}
-                  onMouseDown={(e) => handleMouseDown(e, element.id)}
+                  onPointerDown={(e) => handlePointerDown(e, element.id)}
                 >
                   {getSampleText(element.type)}
                 </div>
@@ -545,16 +603,18 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
             </div>
           </div>
           
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-600">
               Dimensions: {width}mm × {height}mm | Scale: 1:{(1/scale).toFixed(2)}
             </div>
             <div className="text-xs text-gray-500">
-              Tip: Click elements to select, drag to reposition
+              <span className="hidden lg:inline">Tip: Click elements to select, drag to reposition</span>
+              <span className="lg:hidden">Tip: Tap to select, edit above</span>
             </div>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
