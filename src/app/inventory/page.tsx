@@ -11,17 +11,19 @@ export default async function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
       
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <div className="bg-background rounded-lg shadow-sm border border-border p-6">
-            <h1 className="text-2xl font-bold text-foreground mb-6">Inventory Cost Management</h1>
-            <p className="text-muted-foreground mb-6">
-              Manage your inventory costs to track expenses and calculate profit margins. 
-              Add costs for coffee beans, milk, syrups, equipment, and other supplies.
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">Inventory Cost Management</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your inventory costs to track expenses and calculate profit margins
             </p>
+          </div>
+          
+          <div className="p-6">
             <InventoryManager />
           </div>
         </div>

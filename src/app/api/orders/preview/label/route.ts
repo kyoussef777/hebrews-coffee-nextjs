@@ -1,49 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { jsPDF } from 'jspdf';
+import { LabelSettings, Order } from '@/types';
 import { getEffectiveLabelConfig } from '@/lib/labelConfig';
 import { getVerseForLabel, formatVerseForLabel } from '@/lib/bibleVerse';
 
-// GET /api/orders/[id]/label - Generate PDF label for order
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// POST /api/orders/preview/label - Generate preview label with custom settings
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: orderId } = await params;
-    const { searchParams } = new URL(request.url);
-    const configId = searchParams.get('config');
-
-    // Get order details
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-    });
+    const { order, labelSettings }: { order: Order; labelSettings?: LabelSettings } = await request.json();
 
     if (!order) {
       return NextResponse.json(
-        { success: false, error: 'Order not found' },
-        { status: 404 }
+        { success: false, error: 'Missing order data' },
+        { status: 400 }
       );
     }
 
-    // Get the effective label configuration (custom config > app default > hardcoded default)
-    const labelSettings = await getEffectiveLabelConfig(configId);
+    // Use provided labelSettings or fallback to app default
+    const effectiveLabelSettings = labelSettings || await getEffectiveLabelConfig();
 
     // Create PDF with custom dimensions
     const doc = new jsPDF({
-      orientation: labelSettings.width > labelSettings.height ? 'landscape' : 'portrait',
+      orientation: effectiveLabelSettings.width > effectiveLabelSettings.height ? 'landscape' : 'portrait',
       unit: 'mm',
-      format: [labelSettings.width, labelSettings.height],
+      format: [effectiveLabelSettings.width, effectiveLabelSettings.height],
     });
 
     // Process each element
-    for (const element of labelSettings.elements) {
+    for (const element of effectiveLabelSettings.elements) {
       // Set font properties - combine weight and style
       const fontStyle = element.fontWeight === 'bold' && element.fontStyle === 'italic' ? 'bolditalic' :
                        element.fontWeight === 'bold' ? 'bold' :
@@ -118,13 +108,13 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="order-${orderId}-label.pdf"`,
+        'Content-Disposition': 'attachment; filename="label-preview.pdf"',
       },
     });
   } catch (error) {
-    console.error('Error generating label:', error);
+    console.error('Error generating preview label:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to generate label' },
+      { success: false, error: 'Failed to generate preview label' },
       { status: 500 }
     );
   }

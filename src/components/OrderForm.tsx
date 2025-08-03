@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { OrderFormData, MenuConfig, Order } from '@/types';
+import { useState, useEffect, useCallback } from 'react';
+import { OrderFormData, MenuConfig, Order, LabelSettings } from '@/types';
 import { Plus, Printer, X } from 'lucide-react';
 
 export default function OrderForm() {
@@ -33,6 +33,38 @@ export default function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [labelConfigs, setLabelConfigs] = useState<LabelSettings[]>([]);
+  const [selectedLabelConfig, setSelectedLabelConfig] = useState<string>('default');
+  const [defaultConfig, setDefaultConfig] = useState<LabelSettings | null>(null);
+
+  const loadLabelConfigs = useCallback(async () => {
+    try {
+      const response = await fetch('/api/label-settings');
+      const data = await response.json();
+      if (data.success) {
+        setLabelConfigs(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading label configurations:', error);
+    }
+  }, []);
+
+  const loadDefaultConfig = useCallback(async () => {
+    try {
+      const response = await fetch('/api/settings/default-label-config');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setDefaultConfig(data.data);
+        // Only auto-select app-default if no config is currently selected 
+        // or if we're currently on 'default'
+        if (selectedLabelConfig === 'default') {
+          setSelectedLabelConfig('app-default');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading default configuration:', error);
+    }
+  }, [selectedLabelConfig]);
 
   useEffect(() => {
     // Load menu items
@@ -58,12 +90,18 @@ export default function OrderForm() {
         }
       });
 
-  }, []);
+    // Load label configurations
+    loadLabelConfigs();
+    loadDefaultConfig();
+  }, [loadLabelConfigs, loadDefaultConfig]);
 
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/label`);
+      const apiUrl = selectedLabelConfig === 'default' || selectedLabelConfig === 'app-default'
+        ? `/api/orders/${orderId}/label`
+        : `/api/orders/${orderId}/label?config=${selectedLabelConfig}`;
+      const response = await fetch(apiUrl);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -449,6 +487,30 @@ export default function OrderForm() {
                     Total: ${createdOrder.price.toFixed(2)}
                   </div>
                 </div>
+              </div>
+
+              {/* Label Configuration Selector */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Label Configuration
+                </label>
+                <select
+                  value={selectedLabelConfig}
+                  onChange={(e) => setSelectedLabelConfig(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                >
+                  <option value="default">Hardcoded Default</option>
+                  {defaultConfig && (
+                    <option value="app-default">
+                      App Default: {defaultConfig.name} ({defaultConfig.width}×{defaultConfig.height}mm)
+                    </option>
+                  )}
+                  {labelConfigs.map((config) => (
+                    <option key={config.id} value={config.id}>
+                      {config.name} ({config.width}×{config.height}mm)
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div className="flex space-x-3">

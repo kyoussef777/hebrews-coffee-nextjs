@@ -90,6 +90,7 @@ export default function ActiveOrders() {
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
+      // Always use app default configuration for active orders dashboard
       const response = await fetch(`/api/orders/${orderId}/label`);
       if (response.ok) {
         const blob = await response.blob();

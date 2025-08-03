@@ -1,26 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Order, WaitTimeThresholds } from '@/types';
-import { Search, Filter, Play, CheckCircle, Trash2, Printer } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Order, WaitTimeThresholds, LabelSettings } from '@/types';
+import { Search, Filter, Play, CheckCircle, Trash2, Printer, Settings } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [thresholds, setThresholds] = useState<WaitTimeThresholds>({ yellow: 5, red: 10 });
+  const [labelConfigs, setLabelConfigs] = useState<LabelSettings[]>([]);
+  const [selectedLabelConfig, setSelectedLabelConfig] = useState<string>('default');
+  const [defaultConfig, setDefaultConfig] = useState<LabelSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress'>('all');
 
+  const loadLabelConfigs = useCallback(async () => {
+    try {
+      const response = await fetch('/api/label-settings');
+      const data = await response.json();
+      if (data.success) {
+        setLabelConfigs(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading label configurations:', error);
+    }
+  }, []);
+
+  const loadDefaultConfig = useCallback(async () => {
+    try {
+      const response = await fetch('/api/settings/default-label-config');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setDefaultConfig(data.data);
+        // Only auto-select app-default if no config is currently selected 
+        // or if we're currently on 'default'
+        if (selectedLabelConfig === 'default') {
+          setSelectedLabelConfig('app-default');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading default configuration:', error);
+    }
+  }, [selectedLabelConfig]);
+
   useEffect(() => {
     loadOrders();
     loadThresholds();
+    loadLabelConfigs();
+    loadDefaultConfig();
     
     // Poll for updates every 10 seconds
     const interval = setInterval(loadOrders, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadLabelConfigs, loadDefaultConfig]);
 
   useEffect(() => {
     // Filter orders based on search and status
@@ -102,7 +136,10 @@ export default function OrdersTable() {
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/label`);
+      const apiUrl = selectedLabelConfig === 'default' || selectedLabelConfig === 'app-default'
+        ? `/api/orders/${orderId}/label`
+        : `/api/orders/${orderId}/label?config=${selectedLabelConfig}`;
+      const response = await fetch(apiUrl);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -197,6 +234,28 @@ export default function OrdersTable() {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="in_progress">In Progress</option>
+          </select>
+        </div>
+        
+        <div className="relative">
+          <Settings className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <select
+            value={selectedLabelConfig}
+            onChange={(e) => setSelectedLabelConfig(e.target.value)}
+            className="pl-10 pr-8 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
+            title="Select label configuration"
+          >
+            <option value="default">Hardcoded Default</option>
+            {defaultConfig && (
+              <option value="app-default">
+                App Default: {defaultConfig.name} ({defaultConfig.width}×{defaultConfig.height}mm)
+              </option>
+            )}
+            {labelConfigs.map((config) => (
+              <option key={config.id} value={config.id}>
+                {config.name} ({config.width}×{config.height}mm)
+              </option>
+            ))}
           </select>
         </div>
       </div>

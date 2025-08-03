@@ -154,7 +154,7 @@ export default function InventoryManager() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
@@ -165,9 +165,9 @@ export default function InventoryManager() {
           </select>
           
           {/* Total Value Display */}
-          <div className="flex items-center space-x-2 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 px-3 py-2 rounded-lg">
-            <DollarSign className="h-4 w-4" />
-            <span className="font-medium">
+          <div className="flex items-center space-x-2 bg-amber-50 dark:bg-amber-900 text-white dark:text-amber-200 px-3 py-2 rounded-lg">
+            <DollarSign className="h-4 w-4 text-white" />
+            <span className="font-medium text-white">
               Total Value: ${totalInventoryValue.toFixed(2)}
             </span>
           </div>
@@ -184,14 +184,14 @@ export default function InventoryManager() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-muted p-6 rounded-lg border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">
+        <div className="bg-gray-100 p-6 rounded-lg border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             {editingItem ? 'Edit Cost Item' : 'Add New Cost Item'}
           </h3>
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Item Name
               </label>
               <input
@@ -199,20 +199,20 @@ export default function InventoryManager() {
                 required
                 value={formData.itemName}
                 onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="e.g., Arabica Coffee Beans"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category
               </label>
               <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value as InventoryCategory })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               >
                 {categories.map((category) => (
                   <option key={category.value} value={category.value}>
@@ -223,7 +223,7 @@ export default function InventoryManager() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Unit Cost ($)
               </label>
               <input
@@ -233,13 +233,13 @@ export default function InventoryManager() {
                 required
                 value={formData.unitCost}
                 onChange={(e) => setFormData({ ...formData, unitCost: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="0.00"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Unit
               </label>
               <input
@@ -247,20 +247,20 @@ export default function InventoryManager() {
                 required
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="e.g., per lb, per oz, per shot"
               />
             </div>
             
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Notes (Optional)
               </label>
               <textarea
                 rows={2}
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="Additional notes about this cost item..."
               />
             </div>
@@ -285,27 +285,27 @@ export default function InventoryManager() {
       )}
 
       {/* Inventory List */}
-      <div className="bg-background border border-border rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Item
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Unit Cost
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Unit
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notes
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -314,8 +314,8 @@ export default function InventoryManager() {
               {inventoryCosts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
+                    <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                    <p className="text-gray-500">
                       {selectedCategory 
                         ? `No cost items found for ${categories.find(c => c.value === selectedCategory)?.label}`
                         : 'No inventory costs added yet'}
@@ -332,21 +332,21 @@ export default function InventoryManager() {
                 inventoryCosts.map((item) => (
                   <tr key={item.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-foreground">{item.itemName}</div>
+                      <div className="font-medium text-gray-900">{item.itemName}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 text-white">
                         {categories.find(c => c.value === item.category)?.label}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-foreground font-medium">${item.unitCost.toFixed(2)}</div>
+                      <div className="text-gray-900 font-medium">${item.unitCost.toFixed(2)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-muted-foreground">{item.unit}</div>
+                      <div className="text-gray-500">{item.unit}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-muted-foreground text-sm max-w-xs truncate">
+                      <div className="text-gray-500 text-sm max-w-xs truncate">
                         {item.notes || '-'}
                       </div>
                     </td>
@@ -354,14 +354,14 @@ export default function InventoryManager() {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-1 text-muted-foreground hover:text-amber-600 transition-colors"
+                          className="p-1 text-gray-500 hover:text-amber-600 transition-colors"
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item)}
-                          className="p-1 text-muted-foreground hover:text-red-600 transition-colors"
+                          className="p-1 text-gray-500 hover:text-red-600 transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -378,15 +378,15 @@ export default function InventoryManager() {
 
       {/* Category Summary */}
       {inventoryCosts.length > 0 && (
-        <div className="bg-background border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Cost Summary by Category</h3>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cost Summary by Category</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(getTotalCostByCategory()).map(([category, total]) => (
-              <div key={category} className="bg-muted p-4 rounded-lg">
-                <div className="text-sm text-muted-foreground">
+              <div key={category} className="bg-gray-100 p-4 rounded-lg">
+                <div className="text-sm text-gray-500">
                   {categories.find(c => c.value === category)?.label}
                 </div>
-                <div className="text-lg font-semibold text-foreground">
+                <div className="text-lg font-semibold text-gray-900">
                   ${total.toFixed(2)}
                 </div>
               </div>

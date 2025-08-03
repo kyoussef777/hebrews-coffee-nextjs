@@ -170,6 +170,36 @@ export interface WaitTimeThresholds {
   red: number;
 }
 
+export interface LabelElement {
+  id: string;
+  type: 'header' | 'orderNumber' | 'customerName' | 'drink' | 'details' | 'notes' | 'verse';
+  x: number;
+  y: number;
+  fontSize: number;
+  fontWeight: 'normal' | 'bold';
+  fontStyle: 'normal' | 'italic';
+  align: 'left' | 'center' | 'right';
+  maxWidth?: number;
+  maxLines?: number;
+}
+
+export interface LabelSettings {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  elements: LabelElement[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LabelSettingsFormData {
+  name: string;
+  width: number;
+  height: number;
+  elements: LabelElement[];
+}
+
 // Real-time event types
 export interface OrderUpdateEvent {
   type: 'ORDER_CREATED' | 'ORDER_UPDATED' | 'ORDER_DELETED';

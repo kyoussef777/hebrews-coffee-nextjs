@@ -4,7 +4,12 @@
     "allow": [
       "Bash(npx prisma migrate dev:*)",
       "Bash(npm run build:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)",
+      "WebFetch(domain:bolls.life)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

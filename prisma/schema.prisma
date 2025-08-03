@@ -73,6 +73,18 @@ model InventoryCost {
   @@map("inventory_costs")
 }
 
+model LabelSettings {
+  id        String   @id @default(cuid())
+  name      String
+  width     Float
+  height    Float
+  elements  Json     // Store label elements as JSON
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("label_settings")
+}
+
 enum OrderStatus {
   PENDING     @map("pending")
   IN_PROGRESS @map("in_progress")
