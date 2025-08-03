@@ -9,7 +9,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm run lint)",
       "WebFetch(domain:bolls.life)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }
