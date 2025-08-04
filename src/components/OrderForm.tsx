@@ -136,6 +136,27 @@ export default function OrderForm() {
     }
   };
 
+  // Keyboard shortcuts handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Only handle shortcuts when not typing in input/textarea
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    // Ctrl/Cmd + Enter to submit order
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (formData.customerName && formData.drink && !isSubmitting) {
+        document.getElementById('submit-order-btn')?.click();
+      }
+    }
+  }, [formData.customerName, formData.drink, isSubmitting]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.customerName || !formData.drink) return;
@@ -204,10 +225,12 @@ export default function OrderForm() {
               id="customerName"
               type="text"
               required
+              tabIndex={1}
               value={formData.customerName}
               onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
               className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
-              placeholder="Enter customer name"
+              placeholder="Enter customer name (Focus: Tab, Submit: Ctrl+Enter)"
+              autoComplete="off"
             />
           </div>
 
@@ -217,13 +240,14 @@ export default function OrderForm() {
               Select Drink
             </label>
             <div className="scroll-container border border-gray-200 rounded-lg">
-              <div className="grid grid-cols-1 gap-2 max-h-48 md:max-h-96 overflow-y-auto p-2 scrollbar-thin">
+              <div className="grid grid-cols-1 gap-2 max-h-48 md:max-h-[500px] lg:max-h-[600px] overflow-y-auto p-2 scrollbar-thin">
                 {menuItems.drinks.map((drink) => (
                   <button
                     key={drink.id}
                     type="button"
+                    tabIndex={2}
                     onClick={() => setFormData({ ...formData, drink: drink.itemName })}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    className={`p-3 rounded-lg border-2 text-left transition-all focus:ring-2 focus:ring-amber-500 ${
                       formData.drink === drink.itemName
                         ? 'border-amber-500 bg-amber-50 text-amber-900'
                         : 'border-gray-200 bg-white hover:border-amber-300'
@@ -293,7 +317,7 @@ export default function OrderForm() {
               Syrup
             </label>
             <div className="scroll-container border border-gray-200 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 scrollbar-thin">
+              <div className="grid grid-cols-2 gap-2 max-h-32 md:max-h-48 lg:max-h-64 overflow-y-auto p-2 scrollbar-thin">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, syrup: '' })}
@@ -413,10 +437,12 @@ export default function OrderForm() {
             <textarea
               id="notes"
               rows={2}
+              tabIndex={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
               placeholder="Special requests..."
+              autoComplete="off"
             />
           </div>
 
@@ -431,9 +457,12 @@ export default function OrderForm() {
 
           {/* Submit Button */}
           <button
+            id="submit-order-btn"
             type="submit"
+            tabIndex={4}
             disabled={isSubmitting || !formData.customerName || !formData.drink}
             className="w-full flex justify-center items-center py-3 px-4 border-2 border-transparent rounded-lg shadow-lg text-base font-bold text-white bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-4 focus:ring-amber-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            title="Submit order (Ctrl+Enter)"
           >
             {isSubmitting ? (
               <div className="flex items-center">

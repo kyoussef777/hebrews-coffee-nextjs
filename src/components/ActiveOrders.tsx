@@ -9,6 +9,9 @@ export default function ActiveOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [thresholds, setThresholds] = useState<WaitTimeThresholds>({ yellow: 5, red: 10 });
   const [isLoading, setIsLoading] = useState(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [printingOrderId, setPrintingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -58,6 +61,7 @@ export default function ActiveOrders() {
 
   const updateOrderStatus = async (orderId: string, status: 'IN_PROGRESS' | 'COMPLETED') => {
     try {
+      setUpdatingOrderId(orderId);
       const response = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -69,6 +73,8 @@ export default function ActiveOrders() {
       }
     } catch (error) {
       console.error('Error updating order:', error);
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -76,6 +82,7 @@ export default function ActiveOrders() {
     if (!confirm('Are you sure you want to delete this order?')) return;
     
     try {
+      setDeletingOrderId(orderId);
       const response = await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE',
       });
@@ -85,11 +92,14 @@ export default function ActiveOrders() {
       }
     } catch (error) {
       console.error('Error deleting order:', error);
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
+      setPrintingOrderId(orderId);
       // Always use app default configuration for active orders dashboard
       const response = await fetch(`/api/orders/${orderId}/label`);
       if (response.ok) {
@@ -123,6 +133,8 @@ export default function ActiveOrders() {
       }
     } catch (error) {
       console.error('Error printing label:', error);
+    } finally {
+      setPrintingOrderId(null);
     }
   };
 
@@ -204,36 +216,56 @@ export default function ActiveOrders() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => printLabel(order.id, order.orderNumber)}
-                  className="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                  disabled={printingOrderId === order.id}
+                  className="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Printer className="h-3 w-3 mr-1" />
-                  Label
+                  {printingOrderId === order.id ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400 mr-1"></div>
+                  ) : (
+                    <Printer className="h-3 w-3 mr-1" />
+                  )}
+                  {printingOrderId === order.id ? 'Printing...' : 'Label'}
                 </button>
                 
                 {order.status === 'PENDING' ? (
                   <button
                     onClick={() => updateOrderStatus(order.id, 'IN_PROGRESS')}
-                    className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    disabled={updatingOrderId === order.id}
+                    className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Play className="h-3 w-3 mr-1" />
-                    Start
+                    {updatingOrderId === order.id ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-white mr-1"></div>
+                    ) : (
+                      <Play className="h-3 w-3 mr-1" />
+                    )}
+                    {updatingOrderId === order.id ? 'Starting...' : 'Start'}
                   </button>
                 ) : (
                   <button
                     onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                    className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    disabled={updatingOrderId === order.id}
+                    className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Complete
+                    {updatingOrderId === order.id ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-white mr-1"></div>
+                    ) : (
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                    )}
+                    {updatingOrderId === order.id ? 'Completing...' : 'Complete'}
                   </button>
                 )}
                 
                 <button
                   onClick={() => deleteOrder(order.id)}
-                  className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  disabled={deletingOrderId === order.id}
+                  className="inline-flex items-center px-2 py-1 border border-transparent rounded text-xs font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Delete
+                  {deletingOrderId === order.id ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b border-white mr-1"></div>
+                  ) : (
+                    <Trash2 className="h-3 w-3 mr-1" />
+                  )}
+                  {deletingOrderId === order.id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

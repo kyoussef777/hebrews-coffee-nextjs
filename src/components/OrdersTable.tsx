@@ -15,6 +15,9 @@ export default function OrdersTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress'>('all');
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [printingOrderId, setPrintingOrderId] = useState<string | null>(null);
 
   const loadLabelConfigs = useCallback(async () => {
     try {
@@ -118,6 +121,7 @@ export default function OrdersTable() {
 
   const updateOrderStatus = async (orderId: string, status: 'IN_PROGRESS' | 'COMPLETED') => {
     try {
+      setUpdatingOrderId(orderId);
       const response = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -129,6 +133,8 @@ export default function OrdersTable() {
       }
     } catch (error) {
       console.error('Error updating order:', error);
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -136,6 +142,7 @@ export default function OrdersTable() {
     if (!confirm('Are you sure you want to delete this order?')) return;
     
     try {
+      setDeletingOrderId(orderId);
       const response = await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE',
       });
@@ -145,11 +152,14 @@ export default function OrdersTable() {
       }
     } catch (error) {
       console.error('Error deleting order:', error);
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
     try {
+      setPrintingOrderId(orderId);
       const apiUrl = selectedLabelConfig === 'default' || selectedLabelConfig === 'app-default'
         ? `/api/orders/${orderId}/label`
         : `/api/orders/${orderId}/label?config=${selectedLabelConfig}`;
@@ -185,6 +195,8 @@ export default function OrdersTable() {
       }
     } catch (error) {
       console.error('Error printing label:', error);
+    } finally {
+      setPrintingOrderId(null);
     }
   };
 
@@ -365,40 +377,60 @@ export default function OrdersTable() {
                       <div className="flex flex-col space-y-2">
                         <button
                           onClick={() => printLabel(order.id, order.orderNumber)}
-                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+                          disabled={printingOrderId === order.id}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Print Label"
                         >
-                          <Printer className="h-4 w-4 inline mr-1" />
-                          Print
+                          {printingOrderId === order.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b border-gray-400 inline mr-1"></div>
+                          ) : (
+                            <Printer className="h-4 w-4 inline mr-1" />
+                          )}
+                          {printingOrderId === order.id ? 'Printing...' : 'Print'}
                         </button>
                         
                         {order.status === 'PENDING' ? (
                           <button
                             onClick={() => updateOrderStatus(order.id, 'IN_PROGRESS')}
-                            className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-base font-bold transition-colors w-full"
+                            disabled={updatingOrderId === order.id}
+                            className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-base font-bold transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Start Order"
                           >
-                            <Play className="h-5 w-5 inline mr-2" />
-                            START
+                            {updatingOrderId === order.id ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b border-white inline mr-2"></div>
+                            ) : (
+                              <Play className="h-5 w-5 inline mr-2" />
+                            )}
+                            {updatingOrderId === order.id ? 'STARTING...' : 'START'}
                           </button>
                         ) : (
                           <button
                             onClick={() => updateOrderStatus(order.id, 'COMPLETED')}
-                            className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-base font-bold transition-colors w-full"
+                            disabled={updatingOrderId === order.id}
+                            className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-base font-bold transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Complete Order"
                           >
-                            <CheckCircle className="h-5 w-5 inline mr-2" />
-                            COMPLETE
+                            {updatingOrderId === order.id ? (
+                              <div className="animate-spin rounded-full h-5 w-5 border-b border-white inline mr-2"></div>
+                            ) : (
+                              <CheckCircle className="h-5 w-5 inline mr-2" />
+                            )}
+                            {updatingOrderId === order.id ? 'COMPLETING...' : 'COMPLETE'}
                           </button>
                         )}
                         
                         <button
                           onClick={() => deleteOrder(order.id)}
-                          className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm font-medium transition-colors"
+                          disabled={deletingOrderId === order.id}
+                          className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete Order"
                         >
-                          <Trash2 className="h-4 w-4 inline mr-1" />
-                          Delete
+                          {deletingOrderId === order.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b border-red-400 inline mr-1"></div>
+                          ) : (
+                            <Trash2 className="h-4 w-4 inline mr-1" />
+                          )}
+                          {deletingOrderId === order.id ? 'Deleting...' : 'Delete'}
                         </button>
                       </div>
                     </td>
