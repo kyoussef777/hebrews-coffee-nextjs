@@ -73,6 +73,20 @@ export default function OrdersTable() {
       );
     }
 
+    // Sort orders: IN_PROGRESS first, then PENDING by ID ascending
+    filtered = filtered.sort((a, b) => {
+      // First priority: status (IN_PROGRESS comes before PENDING)
+      if (a.status === 'IN_PROGRESS' && b.status !== 'IN_PROGRESS') {
+        return -1;
+      }
+      if (b.status === 'IN_PROGRESS' && a.status !== 'IN_PROGRESS') {
+        return 1;
+      }
+      
+      // Second priority: for same status, sort by ID ascending
+      return a.id.localeCompare(b.id);
+    });
+
     setFilteredOrders(filtered);
   }, [orders, searchTerm, statusFilter]);
 
