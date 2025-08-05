@@ -16,6 +16,7 @@ import {
   VolumeX,
   Package,
   Tag,
+  Settings,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -83,6 +84,12 @@ export default function Navigation({ orderCounts }: NavigationProps) {
       href: '/label-editor',
       icon: Tag,
       current: pathname === '/label-editor',
+    },
+    {
+      name: 'Admin',
+      href: '/admin',
+      icon: Settings,
+      current: pathname === '/admin',
     },
   ];
 
