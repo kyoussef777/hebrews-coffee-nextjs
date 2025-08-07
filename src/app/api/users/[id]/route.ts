@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -17,7 +17,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
     const currentUserId = (session.user as unknown as { id?: string }).id;
 
     // Prevent users from deleting themselves

@@ -32,7 +32,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin(request);
+    await requireAdmin();
     const { id } = await params;
     const body: Partial<InventoryCostFormData> = await parseJson(request);
     if (body.unitCost !== undefined && body.unitCost <= 0) {
@@ -64,7 +64,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin(request);
+    await requireAdmin();
     const { id } = await params;
     await prisma.inventoryCost.delete({ where: { id } });
     return NextResponse.json({ success: true, message: 'Inventory cost deleted successfully' });

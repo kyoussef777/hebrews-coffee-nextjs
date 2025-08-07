@@ -7,7 +7,7 @@ import { auth } from './auth';
 export async function parseJson(request: Request) {
   try {
     return await request.json();
-  } catch (err) {
+  } catch {
     throw new Response(JSON.stringify({ success: false, error: 'Invalid JSON body' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -30,7 +30,7 @@ export function errorResponse(message: string, status = 400) {
  * ADMIN role.  Throws a Response if the user is not authenticated or not an
  * admin.  Should be called at the beginning of API handlers.
  */
-export async function requireAdmin(_request?: Request) {
+export async function requireAdmin() {
   const session = await auth();
   if (!session || !session.user) {
     throw errorResponse('Not authenticated', 401);

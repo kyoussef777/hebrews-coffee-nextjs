@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Only admins can create inventory costs
-    await requireAdmin(request);
+    await requireAdmin();
     const body: InventoryCostFormData = await parseJson(request);
     // Validate required fields
     if (!body.itemName || !body.category || body.unitCost === undefined || !body.unit) {

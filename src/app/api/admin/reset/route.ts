@@ -6,7 +6,7 @@ import { parseJson, errorResponse, requireAdmin } from '@/lib/apiUtils';
 export async function POST(request: NextRequest) {
   try {
     // Only admins can reset the database
-    const session = await requireAdmin(request);
+    const session = await requireAdmin();
     const body = await parseJson(request);
     const { password, resetOrders, resetInventory } = body;
 
