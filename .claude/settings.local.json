@@ -12,7 +12,14 @@
       "Bash(curl:*)",
       "Bash(chmod:*)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npm run dev:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "Bash(npm install:*)",
+      "Bash(find:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(echo \"Exit code: $?\")"
     ],
     "deny": []
   }

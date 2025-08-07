@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { parseJson, errorResponse, requireAdmin, requireAuth } from '@/lib/apiUtils';
 import { prisma } from '@/lib/db';
 import { InventoryCostFormData } from '@/types';
 
@@ -9,34 +9,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // Both admin and staff can view individual inventory costs
+    await requireAuth();
     const { id } = await params;
-
-    const inventoryCost = await prisma.inventoryCost.findUnique({
-      where: { id },
-    });
-
+    const inventoryCost = await prisma.inventoryCost.findUnique({ where: { id } });
     if (!inventoryCost) {
-      return NextResponse.json(
-        { success: false, error: 'Inventory cost not found' },
-        { status: 404 }
-      );
+      return errorResponse('Inventory cost not found', 404);
     }
-
-    return NextResponse.json({
-      success: true,
-      data: inventoryCost,
-    });
-  } catch (error) {
-    console.error('Error fetching inventory cost:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch inventory cost' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, data: inventoryCost });
+  } catch (err) {
+    if (err instanceof Response) {
+      return err;
+    }
+    console.error('Error fetching inventory cost:', err);
+    return errorResponse('Failed to fetch inventory cost', 500);
   }
 }
 
@@ -46,22 +32,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    await requireAdmin(request);
     const { id } = await params;
-    const body: Partial<InventoryCostFormData> = await request.json();
-
-    // Validate unitCost if provided
+    const body: Partial<InventoryCostFormData> = await parseJson(request);
     if (body.unitCost !== undefined && body.unitCost <= 0) {
-      return NextResponse.json(
-        { success: false, error: 'Unit cost must be greater than 0' },
-        { status: 400 }
-      );
+      return errorResponse('Unit cost must be greater than 0', 400);
     }
-
     const inventoryCost = await prisma.inventoryCost.update({
       where: { id },
       data: {
@@ -72,17 +48,13 @@ export async function PATCH(
         ...(body.notes !== undefined && { notes: body.notes?.trim() || null }),
       },
     });
-
-    return NextResponse.json({
-      success: true,
-      data: inventoryCost,
-    });
-  } catch (error) {
-    console.error('Error updating inventory cost:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update inventory cost' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, data: inventoryCost });
+  } catch (err) {
+    if (err instanceof Response) {
+      return err;
+    }
+    console.error('Error updating inventory cost:', err);
+    return errorResponse('Failed to update inventory cost', 500);
   }
 }
 
@@ -92,26 +64,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    await requireAdmin(request);
     const { id } = await params;
-
-    await prisma.inventoryCost.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Inventory cost deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting inventory cost:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete inventory cost' },
-      { status: 500 }
-    );
+    await prisma.inventoryCost.delete({ where: { id } });
+    return NextResponse.json({ success: true, message: 'Inventory cost deleted successfully' });
+  } catch (err) {
+    if (err instanceof Response) {
+      return err;
+    }
+    console.error('Error deleting inventory cost:', err);
+    return errorResponse('Failed to delete inventory cost', 500);
   }
 }

@@ -5,9 +5,12 @@ import InventoryManager from '@/components/InventoryManager';
 
 export default async function InventoryPage() {
   const session = await auth();
-  
   if (!session) {
     redirect('/login');
+  }
+  const role = (session.user as unknown as { role?: string }).role;
+  if (role !== 'ADMIN') {
+    redirect('/');
   }
 
   return (

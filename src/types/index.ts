@@ -41,6 +41,9 @@ export interface User {
   id: string;
   username: string;
   password: string;
+  /** Role determines the user's permissions.  STAFF users can manage orders but cannot access admin screens.
+   *  ADMIN users have full access to analytics, inventory and reset endpoints.*/
+  role: 'ADMIN' | 'STAFF';
   createdAt: Date;
   updatedAt: Date;
 }

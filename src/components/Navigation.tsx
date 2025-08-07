@@ -47,6 +47,10 @@ export default function Navigation({ orderCounts }: NavigationProps) {
     localStorage.setItem('soundEnabled', String(newValue));
   };
 
+  // Build navigation links dynamically based on the user's role.  All users can
+  // access orders and menu configuration, but only admins see analytics,
+  // inventory and admin tools.
+  const userRole = (session?.user as unknown as { role?: string })?.role;
   const navigation = [
     {
       name: 'New Order',
@@ -61,18 +65,28 @@ export default function Navigation({ orderCounts }: NavigationProps) {
       current: pathname === '/orders',
       badge: orderCounts ? orderCounts.pending + orderCounts.inProgress : 0,
     },
-    {
-      name: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-      current: pathname === '/analytics',
-    },
-    {
-      name: 'Inventory',
-      href: '/inventory',
-      icon: Package,
-      current: pathname === '/inventory',
-    },
+    // Analytics only for admins
+    ...((userRole === 'ADMIN')
+      ? [
+          {
+            name: 'Analytics',
+            href: '/analytics',
+            icon: BarChart3,
+            current: pathname === '/analytics',
+          },
+        ]
+      : []),
+    // Inventory only for admins
+    ...((userRole === 'ADMIN')
+      ? [
+          {
+            name: 'Inventory',
+            href: '/inventory',
+            icon: Package,
+            current: pathname === '/inventory',
+          },
+        ]
+      : []),
     {
       name: 'Menu Config',
       href: '/menu',
@@ -85,12 +99,17 @@ export default function Navigation({ orderCounts }: NavigationProps) {
       icon: Tag,
       current: pathname === '/label-editor',
     },
-    {
-      name: 'Admin',
-      href: '/admin',
-      icon: Settings,
-      current: pathname === '/admin',
-    },
+    // Admin page only for admins
+    ...((userRole === 'ADMIN')
+      ? [
+          {
+            name: 'Admin',
+            href: '/admin',
+            icon: Settings,
+            current: pathname === '/admin',
+          },
+        ]
+      : []),
   ];
 
   const activeOrders = orderCounts ? orderCounts.pending + orderCounts.inProgress : 0;

@@ -19,15 +19,25 @@ export async function initializeDatabase() {
     const userCount = await prisma.user.count();
     const menuCount = await prisma.menuConfig.count();
     
-    // Create default admin user if none exists
+    // Create default admin user if none exists.  The default username and password
+    // should be provided via environment variables to avoid shipping insecure
+    // defaults in the codebase.  The default user is always assigned the ADMIN role.
     if (userCount === 0) {
       const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.hash(process.env.APP_PASSWORD || 'password123', 12);
+      const defaultUsername = process.env.APP_USERNAME;
+      const defaultPassword = process.env.APP_PASSWORD;
+      if (!defaultUsername || !defaultPassword) {
+        throw new Error(
+          'APP_USERNAME and APP_PASSWORD must be set when seeding the database.  No fallback credentials are provided.'
+        );
+      }
+      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
       
       await prisma.user.create({
         data: {
-          username: process.env.APP_USERNAME || 'admin',
+          username: defaultUsername,
           password: hashedPassword,
+          role: 'ADMIN',
         },
       });
       
