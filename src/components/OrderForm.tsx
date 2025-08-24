@@ -221,17 +221,23 @@ export default function OrderForm() {
             <label htmlFor="customerName" className="block text-sm font-semibold text-gray-900 mb-2">
               Customer Name
             </label>
-            <input
-              id="customerName"
-              type="text"
-              required
-              tabIndex={1}
-              value={formData.customerName}
-              onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
-              placeholder="Enter customer name (Focus: Tab, Submit: Ctrl+Enter)"
-              autoComplete="off"
-            />
+            <div className="relative">
+              <input
+                id="customerName"
+                type="text"
+                required
+                tabIndex={1}
+                maxLength={25}
+                value={formData.customerName}
+                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
+                placeholder="Enter customer name (Focus: Tab, Submit: Ctrl+Enter)"
+                autoComplete="off"
+              />
+              <div className="absolute bottom-1 right-2 text-xs text-gray-400">
+                {formData.customerName.length}/25
+              </div>
+            </div>
           </div>
 
           {/* Drink Selection */}
@@ -434,16 +440,22 @@ export default function OrderForm() {
             <label htmlFor="notes" className="block text-sm font-semibold text-gray-900 mb-2">
               Notes
             </label>
-            <textarea
-              id="notes"
-              rows={2}
-              tabIndex={3}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
-              placeholder="Special requests..."
-              autoComplete="off"
-            />
+            <div className="relative">
+              <textarea
+                id="notes"
+                rows={2}
+                tabIndex={3}
+                maxLength={100}
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="w-full px-3 py-2 pb-6 border-2 border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-sm"
+                placeholder="Special requests..."
+                autoComplete="off"
+              />
+              <div className="absolute bottom-1 right-2 text-xs text-gray-400">
+                {formData.notes?.length || 0}/100
+              </div>
+            </div>
           </div>
 
           {/* Price Display */}

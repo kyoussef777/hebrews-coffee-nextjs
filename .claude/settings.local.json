@@ -19,7 +19,9 @@
       "Bash(npm install:*)",
       "Bash(find:*)",
       "Bash(git check-ignore:*)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(npx snyk test:*)",
+      "Bash(npx snyk:*)"
     ],
     "deny": []
   }

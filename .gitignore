@@ -95,3 +95,4 @@ ehthumbs.db
 
 # Claude Code settings (keep local settings only)
 .claude/settings.local.json
+.claude

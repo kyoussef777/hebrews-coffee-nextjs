@@ -173,16 +173,47 @@ export interface WaitTimeThresholds {
   red: number;
 }
 
+/**
+ * LabelElement defines the specification for each text element that can be
+ * positioned on a printed label.  In addition to the original fields
+ * (header, orderNumber, customerName, drink, details, notes, verse),
+ * this interface now includes support for additional dynamic fields
+ * such as price and barcode.  Adding new types here ensures proper
+ * type‑checking across the application when manipulating label elements.
+ */
 export interface LabelElement {
+  /** Unique identifier for the element */
   id: string;
-  type: 'header' | 'orderNumber' | 'customerName' | 'drink' | 'details' | 'notes' | 'verse';
+  /**
+   * Element type.  In addition to the built‑in types used by existing label
+   * configurations, additional types (e.g. price, barcode) can be added
+   * to support extra information on the label.
+   */
+  type:
+    | 'header'
+    | 'orderNumber'
+    | 'customerName'
+    | 'drink'
+    | 'details'
+    | 'notes'
+    | 'verse'
+    | 'price'
+    | 'barcode';
+  /** X coordinate in millimetres */
   x: number;
+  /** Y coordinate in millimetres */
   y: number;
+  /** Font size in points */
   fontSize: number;
+  /** Font weight */
   fontWeight: 'normal' | 'bold';
+  /** Font style */
   fontStyle: 'normal' | 'italic';
+  /** Horizontal text alignment */
   align: 'left' | 'center' | 'right';
+  /** Maximum width (in mm) for text wrapping */
   maxWidth?: number;
+  /** Maximum number of lines for wrapped text */
   maxLines?: number;
 }
 

@@ -1,0 +1,12 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+ignore:
+  SNYK-JS-INFLIGHT-6095116:
+    - '*':
+        reason: >-
+          This vulnerability is in a transitive dependency (inflight) only used in development 
+          through sqlite3. The inflight package is unmaintained but the vulnerability requires 
+          local access and only affects development builds. Production uses PostgreSQL without 
+          this dependency chain. Risk is negligible for this coffee shop POS system.
+        expires: '2026-01-01T00:00:00.000Z'
+patch: {}

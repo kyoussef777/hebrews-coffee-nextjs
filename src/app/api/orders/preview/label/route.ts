@@ -80,6 +80,12 @@ export async function POST(request: NextRequest) {
             text = 'The Lord bless you and keep you. - Numbers 6:24';
           }
           break;
+        case 'price':
+          text = order.price !== undefined ? `$${order.price.toFixed(2)}` : '';
+          break;
+        case 'barcode':
+          text = order.id;
+          break;
       }
 
       // Skip empty text

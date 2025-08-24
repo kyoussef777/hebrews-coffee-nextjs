@@ -10,6 +10,7 @@ interface LabelEditorProps {
   onPreview: (settings: LabelSettings) => void;
 }
 
+// The default set of label elements shown when creating a new label.
 const DEFAULT_ELEMENTS: LabelElement[] = [
   {
     id: 'header',
@@ -89,6 +90,19 @@ const DEFAULT_ELEMENTS: LabelElement[] = [
   },
 ];
 
+// Grid snapping interval (in millimetres).  When dragging an element,
+// its position will snap to the nearest multiple of this value.
+const GRID_SIZE = 1;
+
+// Additional element types that can be inserted into a label.  Each entry
+// provides a unique type and a human‑readable name for the dropdown in the
+// editor.  Adding entries here should be mirrored in types/index.ts and
+// sample display functions below.
+const ADDITIONAL_FIELDS: Array<{ type: LabelElement['type']; name: string }> = [
+  { type: 'price', name: 'Price' },
+  { type: 'barcode', name: 'Barcode' },
+];
+
 export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelEditorProps) {
   const [name, setName] = useState(labelSettings?.name || 'Custom Label');
   const [width, setWidth] = useState(labelSettings?.width || 90.3);
@@ -101,6 +115,66 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showHelpTip, setShowHelpTip] = useState(true);
 
+  // State for selecting which additional field to add when clicking "Add Element"
+  const [newFieldType, setNewFieldType] = useState<LabelElement['type']>('price');
+
+
+  // Undo/redo history.  Each entry is a snapshot of the elements array.
+  const [history, setHistory] = useState<LabelElement[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+
+  /**
+   * Record the current elements into the undo history.  If the user has
+   * undone some steps and then performs a new action, this function
+   * truncates any redo states.  A maximum of 50 history entries are kept
+   * to bound memory usage.
+   */
+  const recordHistory = useCallback(
+    (snapshot: LabelElement[]) => {
+      setHistory(prevHistory => {
+        // Discard future history if the user undid some actions
+        const truncated = prevHistory.slice(0, historyIndex + 1);
+        // Clone the snapshot to avoid mutations
+        const newEntry = snapshot.map(el => ({ ...el }));
+        const updated = [...truncated, newEntry];
+        // Limit to last 50 entries
+        return updated.slice(-50);
+      });
+      setHistoryIndex(idx => {
+        const newIdx = Math.min(idx + 1, 49);
+        return newIdx;
+      });
+    },
+    [historyIndex]
+  );
+
+  /**
+   * Add a new element of the selected type to the canvas.  The element
+   * is positioned near the bottom centre of the label by default.  After
+   * insertion, the new element is selected and recorded in the undo history.
+   */
+  const addField = useCallback(() => {
+    const type = newFieldType;
+    // Generate a unique identifier for the element
+    const id = `${type}_${Date.now()}`;
+    const defaultElement: LabelElement = {
+      id,
+      type,
+      x: width / 2,
+      y: height - 5,
+      fontSize: 8,
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      align: 'center',
+    };
+    setElements(prev => {
+      const updated = [...prev, defaultElement];
+      recordHistory(updated);
+      return updated;
+    });
+    setSelectedElement(id);
+  }, [height, newFieldType, recordHistory, width]);
+
   // Update component state when labelSettings prop changes
   useEffect(() => {
     if (labelSettings) {
@@ -109,6 +183,9 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
       setHeight(labelSettings.height);
       setElements(labelSettings.elements);
       setSelectedElement(null); // Clear selection when loading new config
+      // Clear undo history when a saved configuration is loaded
+      setHistory([]);
+      setHistoryIndex(-1);
     } else {
       // Reset to defaults when no labelSettings provided
       setName('Custom Label');
@@ -116,6 +193,9 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
       setHeight(29);
       setElements(DEFAULT_ELEMENTS);
       setSelectedElement(null);
+      // Clear undo history when resetting to defaults
+      setHistory([]);
+      setHistoryIndex(-1);
     }
   }, [labelSettings]);
   
@@ -191,23 +271,34 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
     // Constrain to label bounds
     const constrainedX = Math.max(0, Math.min(width, newX));
     const constrainedY = Math.max(0, Math.min(height, newY));
-    
-    setElements(prev => prev.map(el => 
-      el.id === selectedElement 
-        ? { ...el, x: constrainedX, y: constrainedY }
-        : el
-    ));
+
+    // Snap to nearest grid interval
+    const snappedX = Math.round(constrainedX / GRID_SIZE) * GRID_SIZE;
+    const snappedY = Math.round(constrainedY / GRID_SIZE) * GRID_SIZE;
+
+    setElements(prev =>
+      prev.map(el =>
+        el.id === selectedElement
+          ? { ...el, x: snappedX, y: snappedY }
+          : el
+      )
+    );
   }, [isDragging, selectedElement, dragOffset, scale, width, height]);
 
   const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     setDragOffset({ x: 0, y: 0 });
-  }, []);
+    // Record history after a drag operation completes
+    recordHistory(elements);
+  }, [elements, recordHistory]);
 
   const updateElement = (elementId: string, updates: Partial<LabelElement>) => {
-    setElements(prev => prev.map(el => 
-      el.id === elementId ? { ...el, ...updates } : el
-    ));
+    setElements(prev => {
+      const updated = prev.map(el => (el.id === elementId ? { ...el, ...updates } : el));
+      // Record the change for undo history
+      recordHistory(updated);
+      return updated;
+    });
   };
 
   const duplicateElement = useCallback((elementId: string) => {
@@ -219,16 +310,24 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
         x: element.x + 5,
         y: element.y + 2,
       };
-      setElements(prev => [...prev, newElement]);
+      setElements(prev => {
+        const updated = [...prev, newElement];
+        recordHistory(updated);
+        return updated;
+      });
     }
-  }, [elements]);
+  }, [elements, recordHistory]);
 
   const deleteElement = useCallback((elementId: string) => {
-    setElements(prev => prev.filter(el => el.id !== elementId));
+    setElements(prev => {
+      const updated = prev.filter(el => el.id !== elementId);
+      recordHistory(updated);
+      return updated;
+    });
     if (selectedElement === elementId) {
       setSelectedElement(null);
     }
-  }, [selectedElement]);
+  }, [selectedElement, recordHistory]);
 
   const handleSave = useCallback(() => {
     onSave({
@@ -239,6 +338,37 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
     });
   }, [name, width, height, elements, onSave]);
 
+  // Undo the last change to elements.  When invoked, it replaces the
+  // current elements array with the previous snapshot from the history.
+  const handleUndo = useCallback(() => {
+    if (historyIndex > 0) {
+      setHistoryIndex(prevIndex => {
+        const newIndex = prevIndex - 1;
+        const snapshot = history[newIndex];
+        if (snapshot) {
+          // Replace elements with a deep clone of the snapshot
+          setElements(snapshot.map(el => ({ ...el })));
+        }
+        return newIndex;
+      });
+    }
+  }, [history, historyIndex]);
+
+  // Redo a previously undone change.  Moves forward in the history array
+  // and applies the next snapshot to elements.
+  const handleRedo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(prevIndex => {
+        const newIndex = prevIndex + 1;
+        const snapshot = history[newIndex];
+        if (snapshot) {
+          setElements(snapshot.map(el => ({ ...el })));
+        }
+        return newIndex;
+      });
+    }
+  }, [history, historyIndex]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -246,25 +376,44 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
         return; // Don't interfere with form inputs
       }
 
-      if (e.key === 'Delete' && selectedElement) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
         e.preventDefault();
         deleteElement(selectedElement);
       } else if (e.key === 'Escape') {
         setSelectedElement(null);
       } else if (e.ctrlKey || e.metaKey) {
-        if (e.key === 's') {
-          e.preventDefault();
-          handleSave();
-        } else if (e.key === 'd' && selectedElement) {
-          e.preventDefault();
-          duplicateElement(selectedElement);
+        switch (e.key) {
+          case 's':
+            e.preventDefault();
+            handleSave();
+            break;
+          case 'd':
+            if (selectedElement) {
+              e.preventDefault();
+              duplicateElement(selectedElement);
+            }
+            break;
+          case 'z':
+            // Undo (Ctrl/Cmd+Z).  If Shift is held, redo instead.
+            e.preventDefault();
+            if (e.shiftKey) {
+              handleRedo();
+            } else {
+              handleUndo();
+            }
+            break;
+          case 'y':
+            // Some users expect Ctrl+Y to redo
+            e.preventDefault();
+            handleRedo();
+            break;
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedElement, deleteElement, duplicateElement, handleSave]);
+  }, [selectedElement, deleteElement, duplicateElement, handleSave, handleUndo, handleRedo]);
 
   const handlePreview = () => {
     onPreview({
@@ -281,20 +430,22 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
   const selectedElementData = selectedElement ? elements.find(el => el.id === selectedElement) : null;
 
   const getElementDisplayName = (type: LabelElement['type']) => {
-    const names = {
+    const names: Record<LabelElement['type'], string> = {
       header: 'Header (HeBrews Coffee)',
       orderNumber: 'Order Number',
-      customerName: 'Customer Name', 
+      customerName: 'Customer Name',
       drink: 'Drink Name',
       details: 'Drink Details',
       notes: 'Customer Notes',
       verse: 'Bible Verse (NKJV)',
+      price: 'Price',
+      barcode: 'Barcode',
     };
     return names[type];
   };
 
   const getSampleText = (type: LabelElement['type']) => {
-    const samples = {
+    const samples: Record<LabelElement['type'], string> = {
       header: 'HeBrews Coffee',
       orderNumber: '#1234',
       customerName: 'John Doe',
@@ -302,9 +453,13 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
       details: 'Oat Milk, Vanilla, Extra Hot',
       notes: 'Note: Extra foam please',
       verse: 'The Lord bless you and keep you. - Numbers 6:24',
+      price: '$4.50',
+      barcode: '123456789012',
     };
     return samples[type];
   };
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -503,23 +658,65 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
             </div>
           )}
 
-          {/* Actions */}
-          <div className="space-y-3">
-            <button
-              onClick={handleSave}
-              className="w-full flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-lg font-medium"
-            >
-              <Save className="h-4 w-4" />
-              <span>Save Configuration</span>
-            </button>
-            
-            <button
-              onClick={handlePreview}
-              className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium"
-            >
-              <Eye className="h-4 w-4" />
-              <span>Preview Label</span>
-            </button>
+          {/* Add Elements and History Controls */}
+          <div className="space-y-4 lg:space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 lg:mb-4">Manage Elements</h3>
+              <div className="space-y-3">
+                <div className="flex items-stretch space-x-2">
+                  <select
+                    value={newFieldType}
+                    onChange={(e) => setNewFieldType(e.target.value as LabelElement['type'])}
+                    className="flex-1 px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  >
+                    {ADDITIONAL_FIELDS.map(({ type, name }) => (
+                      <option key={type} value={type}>{name}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={addField}
+                    className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium whitespace-nowrap"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleUndo}
+                    disabled={historyIndex <= 0}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium border ${historyIndex <= 0 ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+                  >
+                    <span>Undo</span>
+                  </button>
+                  <button
+                    onClick={handleRedo}
+                    disabled={historyIndex >= history.length - 1 || historyIndex === -1}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium border ${historyIndex >= history.length - 1 || historyIndex === -1 ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300'}`}
+                  >
+                    <span>Redo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3">
+              <button
+                onClick={handleSave}
+                className="w-full flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-3 rounded-lg font-medium"
+              >
+                <Save className="h-4 w-4" />
+                <span>Save Configuration</span>
+              </button>
+              
+              <button
+                onClick={handlePreview}
+                className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium"
+              >
+                <Eye className="h-4 w-4" />
+                <span>Preview Label</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

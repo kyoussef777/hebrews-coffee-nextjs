@@ -90,6 +90,14 @@ export async function GET(
             text = 'The Lord bless you and keep you. - Numbers 6:24';
           }
           break;
+        case 'price':
+          // Format price with two decimal places
+          text = order.price !== undefined ? `$${order.price.toFixed(2)}` : '';
+          break;
+        case 'barcode':
+          // Use order id as a simple barcode representation
+          text = order.id;
+          break;
       }
 
       // Skip empty text
