@@ -249,13 +249,63 @@ function LabelEditorContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
       
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+          {/* Mobile Layout */}
+          <div className="space-y-3 lg:hidden">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-bold text-gray-900">Label Editor</h1>
+              <button
+                onClick={() => {
+                  setLabelSettings(undefined);
+                  router.push('/label-editor');
+                }}
+                className="flex items-center space-x-1 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>New</span>
+              </button>
+            </div>
+            
+            {labelSettings && (
+              <div className="text-sm text-gray-600 font-medium truncate">
+                Editing: {labelSettings.name}
+              </div>
+            )}
+            
+            <div className="flex flex-col space-y-2">
+              {defaultConfig && (
+                <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs">
+                  <Star className="h-3 w-3 text-amber-600 flex-shrink-0" />
+                  <span className="text-amber-800 truncate">
+                    Default: <span className="font-medium">{defaultConfig.name}</span>
+                  </span>
+                  <button
+                    onClick={clearDefaultConfig}
+                    className="ml-auto text-amber-600 hover:text-amber-800 flex-shrink-0"
+                    title="Clear default"
+                  >
+                    <StarOff className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              
+              <button
+                onClick={() => setShowConfigList(!showConfigList)}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Saved Configs ({savedConfigs.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex lg:items-center lg:justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900">
                 Label Editor
@@ -305,57 +355,64 @@ function LabelEditorContent() {
 
       {/* Configuration List */}
       {showConfigList && (
-        <div className="bg-gray-100 border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h2 className="text-lg font-medium text-gray-900 mb-3">Saved Configurations</h2>
+        <div className="bg-gray-100 border-b border-gray-200 max-h-96 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base sm:text-lg font-medium text-gray-900">Saved Configurations</h2>
+              <button
+                onClick={() => setShowConfigList(false)}
+                className="lg:hidden text-gray-400 hover:text-gray-600 text-xl"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
             {savedConfigs.length === 0 ? (
-              <p className="text-gray-600">No saved configurations yet.</p>
+              <p className="text-gray-600 text-sm">No saved configurations yet.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {savedConfigs.map((config) => (
                   <div
                     key={config.id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="space-y-3">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{config.name}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {config.width}mm × {config.height}mm
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {config.elements.length} elements
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{config.name}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                          {config.width}mm × {config.height}mm • {config.elements.length} elements
                         </p>
                         <p className="text-xs text-gray-500">
                           Updated {new Date(config.updatedAt).toLocaleDateString()}
                         </p>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                         <button
                           onClick={() => loadConfiguration(config)}
-                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+                          className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm rounded text-center"
                         >
                           Load
                         </button>
                         {defaultConfig?.id === config.id ? (
-                          <div className="flex items-center space-x-1 px-3 py-1 bg-amber-100 border border-amber-300 text-amber-800 text-sm rounded">
+                          <div className="flex-1 flex items-center justify-center space-x-1 px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs sm:text-sm rounded">
                             <Star className="h-3 w-3" />
                             <span>Default</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => setAsDefaultConfig(config)}
-                            className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded flex items-center space-x-1"
+                            className="flex-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm rounded flex items-center justify-center space-x-1"
                             title="Set as default for all orders"
                           >
                             <Settings className="h-3 w-3" />
-                             <span>Set Default</span>
+                            <span className="hidden sm:inline">Set Default</span>
+                            <span className="sm:hidden">Default</span>
                           </button>
                         )}
                         <button
                           onClick={() => deleteConfiguration(config)}
-                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded"
+                          className="flex-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm rounded text-center"
                         >
                           Delete
                         </button>
@@ -370,13 +427,11 @@ function LabelEditorContent() {
       )}
 
       {/* Label Editor */}
-      <div className="max-w-7xl mx-auto">
-        <LabelEditor
-          labelSettings={labelSettings}
-          onSave={handleSave}
-          onPreview={handlePreview}
-        />
-      </div>
+      <LabelEditor
+        labelSettings={labelSettings}
+        onSave={handleSave}
+        onPreview={handlePreview}
+      />
     </div>
   );
 }

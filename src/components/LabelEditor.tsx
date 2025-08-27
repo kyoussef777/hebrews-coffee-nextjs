@@ -462,12 +462,12 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 min-h-0 flex-1">
       {/* Mobile/Desktop responsive layout */}
-      <div className="lg:flex lg:min-h-screen">
+      <div className="flex flex-col lg:flex-row min-h-0">
         {/* Controls Panel */}
-        <div className="w-full lg:w-80 bg-white p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto shadow-sm">
-          <div className="space-y-4 lg:space-y-6">
+        <div className="w-full lg:w-80 bg-white p-3 sm:p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto shadow-sm max-h-screen lg:max-h-none">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Label Settings */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3 lg:mb-4">Label Settings</h3>
@@ -480,8 +480,9 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Label configuration name"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
               
@@ -494,10 +495,11 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={width}
                     onChange={(e) => setWidth(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="10"
                     max="200"
                     step="0.1"
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
                 
@@ -509,10 +511,11 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="10"
                     max="100"
                     step="0.1"
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
               </div>
@@ -547,8 +550,9 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                       type="number"
                       value={selectedElementData.x.toFixed(1)}
                       onChange={(e) => updateElement(selectedElementData.id, { x: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                       step="0.1"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                   
@@ -560,8 +564,9 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                       type="number"
                       value={selectedElementData.y.toFixed(1)}
                       onChange={(e) => updateElement(selectedElementData.id, { y: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                       step="0.1"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                 </div>
@@ -574,9 +579,10 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     type="number"
                     value={selectedElementData.fontSize}
                     onChange={(e) => updateElement(selectedElementData.id, { fontSize: parseInt(e.target.value) || 8 })}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     min="4"
                     max="24"
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
                 
@@ -588,7 +594,8 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     <select
                       value={selectedElementData.fontWeight}
                       onChange={(e) => updateElement(selectedElementData.id, { fontWeight: e.target.value as 'normal' | 'bold' })}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      style={{ fontSize: '16px' }}
                     >
                       <option value="normal">Normal</option>
                       <option value="bold">Bold</option>
@@ -602,7 +609,8 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                     <select
                       value={selectedElementData.fontStyle}
                       onChange={(e) => updateElement(selectedElementData.id, { fontStyle: e.target.value as 'normal' | 'italic' })}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      style={{ fontSize: '16px' }}
                     >
                       <option value="normal">Normal</option>
                       <option value="italic">Italic</option>
@@ -617,7 +625,8 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   <select
                     value={selectedElementData.align}
                     onChange={(e) => updateElement(selectedElementData.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    style={{ fontSize: '16px' }}
                   >
                     <option value="left">Left</option>
                     <option value="center">Center</option>
@@ -667,7 +676,8 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
                   <select
                     value={newFieldType}
                     onChange={(e) => setNewFieldType(e.target.value as LabelElement['type'])}
-                    className="flex-1 px-3 py-2 text-base border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="flex-1 px-3 py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    style={{ fontSize: '16px' }}
                   >
                     {ADDITIONAL_FIELDS.map(({ type, name }) => (
                       <option key={type} value={type}>{name}</option>
@@ -722,10 +732,10 @@ export default function LabelEditor({ labelSettings, onSave, onPreview }: LabelE
       </div>
 
       {/* Preview Panel */}
-      <div className="flex-1 p-4 lg:p-6 overflow-auto bg-gray-50">
+      <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 space-y-3 lg:space-y-0">
-            <h2 className="text-xl font-semibold text-gray-900">Label Preview</h2>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-3 sm:mb-4 space-y-2 lg:space-y-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Label Preview</h2>
             {showHelpTip && (
               <div className="flex items-start space-x-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
                 <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />

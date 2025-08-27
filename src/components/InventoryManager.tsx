@@ -148,13 +148,14 @@ export default function InventoryManager() {
   return (
     <div className="space-y-6">
       {/* Header and Controls */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+      <div className="space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
           {/* Category Filter */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            style={{ fontSize: '16px' }}
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
@@ -165,20 +166,20 @@ export default function InventoryManager() {
           </select>
           
           {/* Total Value Display */}
-          <div className="flex items-center space-x-2 bg-amber-50 dark:bg-amber-900 text-white dark:text-amber-200 px-3 py-2 rounded-lg">
-            <DollarSign className="h-4 w-4 text-white" />
-            <span className="font-medium text-white">
-              Total Value: ${totalInventoryValue.toFixed(2)}
+          <div className="flex items-center justify-center sm:justify-start space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg">
+            <DollarSign className="h-4 w-4" />
+            <span className="font-medium text-sm sm:text-base">
+              Total: ${totalInventoryValue.toFixed(2)}
             </span>
           </div>
         </div>
         
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>Add Cost Item</span>
+          <span>Add Item</span>
         </button>
       </div>
 
@@ -201,6 +202,7 @@ export default function InventoryManager() {
                 onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="e.g., Arabica Coffee Beans"
+                style={{ fontSize: '16px' }}
               />
             </div>
             
@@ -213,6 +215,7 @@ export default function InventoryManager() {
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value as InventoryCategory })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                style={{ fontSize: '16px' }}
               >
                 {categories.map((category) => (
                   <option key={category.value} value={category.value}>
@@ -235,6 +238,7 @@ export default function InventoryManager() {
                 onChange={(e) => setFormData({ ...formData, unitCost: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="0.00"
+                style={{ fontSize: '16px' }}
               />
             </div>
             
@@ -249,6 +253,7 @@ export default function InventoryManager() {
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="e.g., per lb, per oz, per shot"
+                style={{ fontSize: '16px' }}
               />
             </div>
             
@@ -262,6 +267,7 @@ export default function InventoryManager() {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 placeholder="Additional notes about this cost item..."
+                style={{ fontSize: '16px' }}
               />
             </div>
             
