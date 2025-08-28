@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { OrderFormData, MenuConfig, Order, LabelSettings } from '@/types';
 import { Plus, Printer, X } from 'lucide-react';
+import { printOrderLabel } from '@/lib/printUtils';
 
 export default function OrderForm() {
   const [formData, setFormData] = useState<OrderFormData>({
@@ -100,43 +101,7 @@ export default function OrderForm() {
 
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
-    try {
-      const apiUrl = selectedLabelConfig === 'default' || selectedLabelConfig === 'app-default'
-        ? `/api/orders/${orderId}/label`
-        : `/api/orders/${orderId}/label?config=${selectedLabelConfig}`;
-      const response = await fetch(apiUrl);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        // Open PDF in new window/tab and attempt to auto-print
-        const printWindow = window.open(url, '_blank');
-        if (printWindow) {
-          printWindow.onload = () => {
-            // Small delay to ensure PDF is loaded, then trigger print
-            setTimeout(() => {
-              printWindow.print();
-            }, 500);
-          };
-        } else {
-          // Fallback: create downloadable link if popup blocked
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = `order-${orderNumber || orderId}-label.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-        
-        // Clean up the URL after a delay
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url);
-        }, 5000);
-      }
-    } catch (error) {
-      console.error('Error printing label:', error);
-    }
+    await printOrderLabel(orderId, orderNumber, selectedLabelConfig);
   };
 
   // Keyboard shortcuts handler

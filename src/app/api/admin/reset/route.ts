@@ -34,6 +34,9 @@ export async function POST(request: NextRequest) {
     if (resetOrders) {
       const deletedOrders = await prisma.order.deleteMany({});
       results.ordersDeleted = deletedOrders.count;
+      
+      // Reset the order_number sequence to start from 1 again
+      await prisma.$executeRaw`ALTER SEQUENCE orders_order_number_seq RESTART WITH 1`;
     }
     if (resetInventory) {
       const deletedInventory = await prisma.inventoryCost.deleteMany({});
