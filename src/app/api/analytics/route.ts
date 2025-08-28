@@ -3,6 +3,11 @@ import { requireAdmin, errorResponse } from '@/lib/apiUtils';
 import { prisma } from '@/lib/db';
 import { SyrupSelection } from '@/types';
 
+// Legacy order format for backward compatibility
+interface LegacyOrder {
+  syrup?: string;
+}
+
 // GET /api/analytics - Get analytics data
 export async function GET() {
   try {
@@ -49,9 +54,9 @@ export async function GET() {
         (order.syrups as unknown as SyrupSelection[]).forEach((syrup) => {
           syrupCounts[syrup.syrupName] = (syrupCounts[syrup.syrupName] || 0) + syrup.pumps;
         });
-      } else if ((order as any).syrup && typeof (order as any).syrup === 'string') {
+      } else if ((order as LegacyOrder).syrup && typeof (order as LegacyOrder).syrup === 'string') {
         // Old format: single syrup string (legacy support)
-        const syrupName = (order as any).syrup;
+        const syrupName = (order as LegacyOrder).syrup as string;
         syrupCounts[syrupName] = (syrupCounts[syrupName] || 0) + 1;
       }
       

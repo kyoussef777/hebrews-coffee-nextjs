@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Trash2, AlertTriangle, Lock, Database } from 'lucide-react';
-import { set } from 'zod';
 
 export default function DatabaseReset() {
   const [isLoading, setIsLoading] = useState(false);
