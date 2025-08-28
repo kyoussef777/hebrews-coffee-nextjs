@@ -78,6 +78,7 @@ export async function initializeDatabase() {
         { itemType: MenuItemType.FOAM, itemName: 'Extra Foam', price: null },
         { itemType: MenuItemType.FOAM, itemName: 'Light Foam', price: null },
         { itemType: MenuItemType.FOAM, itemName: 'No Foam', price: null },
+        { itemType: MenuItemType.FOAM, itemName: 'Cold Foam', price: null },
         
         // Temperature options
         { itemType: MenuItemType.TEMPERATURE, itemName: 'Hot', price: null },

@@ -7,8 +7,11 @@ export default auth((req) => {
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/api/auth'];
   
+  // Allow GET requests to extra pricing API (for order form)
+  const isExtraPricingGet = pathname === '/api/settings/extra-pricing' && req.method === 'GET';
+  
   // Check if current route is public
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || isExtraPricingGet;
   
   if (isPublicRoute) {
     return NextResponse.next();

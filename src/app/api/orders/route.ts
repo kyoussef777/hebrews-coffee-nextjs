@@ -83,9 +83,26 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Get current pricing settings
+    const extraShotSetting = await prisma.settings.findUnique({
+      where: { settingKey: 'extra_shot_price' },
+    });
+    const coldFoamSetting = await prisma.settings.findUnique({
+      where: { settingKey: 'cold_foam_price' },
+    });
+
+    const extraShotPrice = extraShotSetting ? parseFloat(extraShotSetting.settingValue) : 1.00;
+    const coldFoamPrice = coldFoamSetting ? parseFloat(coldFoamSetting.settingValue) : 1.00;
+
+    // Calculate total price
     const basePrice = drinkItem?.price || 0;
-    const extraShotsPrice = (body.extraShots || 0) * 1.0;
-    const totalPrice = basePrice + extraShotsPrice;
+    const extraShotsPrice = (body.extraShots || 0) * extraShotPrice;
+    
+    // Check if cold foam is selected
+    const isColdFoam = body.foam && body.foam.toLowerCase().includes('cold foam');
+    const coldFoamExtraPrice = isColdFoam ? coldFoamPrice : 0;
+    
+    const totalPrice = basePrice + extraShotsPrice + coldFoamExtraPrice;
 
     // Create order (orderNumber will auto-increment)
     const order = await prisma.order.create({

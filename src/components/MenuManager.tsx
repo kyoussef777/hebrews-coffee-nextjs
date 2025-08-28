@@ -14,6 +14,12 @@ export default function MenuManager() {
     itemName: '',
     price: '',
   });
+  const [extraPricing, setExtraPricing] = useState({
+    extraShotPrice: 1.00,
+    coldFoamPrice: 1.00,
+  });
+  const [showExtraPricing, setShowExtraPricing] = useState(false);
+  const [isUpdatingPricing, setIsUpdatingPricing] = useState(false);
 
   const itemTypes: { value: MenuItemType; label: string }[] = [
     { value: 'DRINK', label: 'Drinks' },
@@ -25,6 +31,7 @@ export default function MenuManager() {
 
   useEffect(() => {
     loadMenuItems();
+    loadExtraPricing();
   }, []);
 
   const loadMenuItems = async () => {
@@ -38,6 +45,44 @@ export default function MenuManager() {
       console.error('Error loading menu items:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadExtraPricing = async () => {
+    try {
+      const response = await fetch('/api/settings/extra-pricing');
+      const data = await response.json();
+      if (data.success) {
+        setExtraPricing(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading extra pricing:', error);
+    }
+  };
+
+  const handleExtraPricingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdatingPricing(true);
+    
+    try {
+      const response = await fetch('/api/settings/extra-pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(extraPricing),
+      });
+
+      if (response.ok) {
+        setShowExtraPricing(false);
+        alert('Extra pricing updated successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating extra pricing:', error);
+      alert('Failed to update extra pricing');
+    } finally {
+      setIsUpdatingPricing(false);
     }
   };
 
@@ -127,16 +172,24 @@ export default function MenuManager() {
 
   return (
     <div className="space-y-6">
-      {/* Add New Item Button */}
-      <div className="flex justify-between items-center">
+      {/* Header with actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h2 className="text-lg font-medium text-gray-900">Menu Items</h2>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Item
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowExtraPricing(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+          >
+            Extra Pricing
+          </button>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Item
+          </button>
+        </div>
       </div>
 
       {/* Add/Edit Form */}
@@ -210,6 +263,77 @@ export default function MenuManager() {
               <button
                 type="button"
                 onClick={cancelEdit}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Extra Pricing Form */}
+      {showExtraPricing && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Extra Pricing Configuration
+          </h3>
+          
+          <form onSubmit={handleExtraPricingSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="extraShotPrice" className="block text-sm font-medium text-gray-700 mb-1">
+                  Extra Shot Price ($)
+                </label>
+                <input
+                  id="extraShotPrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  required
+                  value={extraPricing.extraShotPrice}
+                  onChange={(e) => setExtraPricing({ ...extraPricing, extraShotPrice: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
+                  placeholder="1.00"
+                />
+                <p className="text-xs text-gray-500 mt-1">Price charged for each extra espresso shot</p>
+              </div>
+
+              <div>
+                <label htmlFor="coldFoamPrice" className="block text-sm font-medium text-gray-700 mb-1">
+                  Cold Foam Price ($)
+                </label>
+                <input
+                  id="coldFoamPrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  required
+                  value={extraPricing.coldFoamPrice}
+                  onChange={(e) => setExtraPricing({ ...extraPricing, coldFoamPrice: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
+                  placeholder="1.00"
+                />
+                <p className="text-xs text-gray-500 mt-1">Extra charge for cold foam option</p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                disabled={isUpdatingPricing}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isUpdatingPricing ? 'Updating...' : 'Update Pricing'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowExtraPricing(false)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
               >
                 <X className="h-4 w-4 mr-2" />

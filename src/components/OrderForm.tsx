@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { OrderFormData, MenuConfig, Order, LabelSettings } from '@/types';
 import { Plus, Printer, X } from 'lucide-react';
 import { printOrderLabel } from '@/lib/printUtils';
@@ -40,6 +40,10 @@ export default function OrderForm() {
   const [showRaffleOptIn, setShowRaffleOptIn] = useState(false);
   const [rafflePhoneNumber, setRafflePhoneNumber] = useState('');
   const [isSubmittingRaffle, setIsSubmittingRaffle] = useState(false);
+  const [extraPricing, setExtraPricing] = useState({
+    extraShotPrice: 1.00,
+    coldFoamPrice: 1.00,
+  });
 
   const loadLabelConfigs = useCallback(async () => {
     try {
@@ -70,6 +74,23 @@ export default function OrderForm() {
     }
   }, [selectedLabelConfig]);
 
+  const loadExtraPricing = useCallback(async () => {
+    try {
+      console.log('🔄 Loading extra pricing...');
+      const response = await fetch('/api/settings/extra-pricing');
+      const data = await response.json();
+      console.log('📊 Extra pricing response:', data);
+      if (data.success) {
+        setExtraPricing(data.data);
+        console.log('✅ Extra pricing loaded:', data.data);
+      } else {
+        console.log('❌ Extra pricing failed:', data);
+      }
+    } catch (error) {
+      console.error('Error loading extra pricing:', error);
+    }
+  }, []);
+
   useEffect(() => {
     // Load menu items
     fetch('/api/menu')
@@ -97,7 +118,8 @@ export default function OrderForm() {
     // Load label configurations
     loadLabelConfigs();
     loadDefaultConfig();
-  }, [loadLabelConfigs, loadDefaultConfig]);
+    loadExtraPricing();
+  }, [loadLabelConfigs, loadDefaultConfig, loadExtraPricing]);
 
 
   const printLabel = async (orderId: string, orderNumber?: number) => {
@@ -210,11 +232,34 @@ export default function OrderForm() {
     setRafflePhoneNumber('');
   };
 
-  const getCurrentPrice = () => {
+  const currentPrice = useMemo(() => {
     const drinkPrice = menuItems.drinks.find(d => d.itemName === formData.drink)?.price || 0;
-    const extraShotsPrice = formData.extraShots * 1.0;
-    return drinkPrice + extraShotsPrice;
-  };
+    const extraShotsPrice = formData.extraShots * extraPricing.extraShotPrice;
+    
+    // Check if premium foam is selected and charge extra
+    // Option 1: Look for "cold foam" in the name
+    const isColdFoamByName = formData.foam && formData.foam.toLowerCase().includes('cold foam');
+    
+    // Option 2: Treat specific foam types as premium (modify this list as needed)
+    const premiumFoamTypes = ['Regular Foam', 'Cold Foam', 'Extra Foam']; // Add foam types that should cost extra
+    const isPremiumFoam = formData.foam && premiumFoamTypes.includes(formData.foam);
+    
+    // Use either detection method (change this line to switch between approaches)
+    const isColdFoam = isColdFoamByName || isPremiumFoam; // Currently using BOTH methods
+    const coldFoamPrice = isColdFoam ? extraPricing.coldFoamPrice : 0;
+    
+    console.log('🔍 Price Debug:', {
+      foam: formData.foam,
+      isColdFoam,
+      extraPricing,
+      coldFoamPrice,
+      drinkPrice,
+      extraShotsPrice,
+      total: drinkPrice + extraShotsPrice + coldFoamPrice
+    });
+
+    return drinkPrice + extraShotsPrice + coldFoamPrice;
+  }, [formData.drink, formData.extraShots, formData.foam, menuItems.drinks, extraPricing]);
 
   return (
     <>
@@ -367,20 +412,31 @@ export default function OrderForm() {
               Foam
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {menuItems.foams.map((foam) => (
-                <button
-                  key={foam.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, foam: foam.itemName })}
-                  className={`p-2 rounded-lg border-2 text-center transition-all ${
-                    formData.foam === foam.itemName
-                      ? 'border-amber-500 bg-amber-50 text-amber-900'
-                      : 'border-gray-200 bg-white hover:border-amber-300'
-                  }`}
-                >
-                  <div className="font-medium text-xs">{foam.itemName}</div>
-                </button>
-              ))}
+              {menuItems.foams.map((foam) => {
+                const isColdFoamByName = foam.itemName.toLowerCase().includes('cold foam');
+                const premiumFoamTypes = ['Regular Foam', 'Cold Foam', 'Extra Foam'];
+                const isPremiumFoam = premiumFoamTypes.includes(foam.itemName);
+                const isColdFoam = isColdFoamByName || isPremiumFoam;
+                return (
+                  <button
+                    key={foam.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, foam: foam.itemName })}
+                    className={`p-2 rounded-lg border-2 text-center transition-all ${
+                      formData.foam === foam.itemName
+                        ? 'border-amber-500 bg-amber-50 text-amber-900'
+                        : 'border-gray-200 bg-white hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="font-medium text-xs">{foam.itemName}</div>
+                    {isColdFoam && (
+                      <div className="text-xs text-green-600 font-semibold mt-1">
+                        +${extraPricing.coldFoamPrice.toFixed(2)}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -407,7 +463,7 @@ export default function OrderForm() {
                   {formData.extraShots} {formData.extraShots === 1 ? 'Shot' : 'Shots'}
                 </div>
                 <div className="text-xs text-green-600 font-semibold">
-                  {formData.extraShots > 0 ? `+$${(formData.extraShots * 1.0).toFixed(2)}` : 'No extra shots'}
+                  {formData.extraShots > 0 ? `+$${(formData.extraShots * extraPricing.extraShotPrice).toFixed(2)}` : 'No extra shots'}
                 </div>
               </div>
               
@@ -468,8 +524,17 @@ export default function OrderForm() {
           {/* Price Display */}
           {formData.drink && (
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-3">
-              <div className="text-xl font-bold text-amber-800">
-                Total: ${getCurrentPrice().toFixed(2)}
+              <div className="text-xl font-bold text-amber-800 mb-2">
+                Total: ${currentPrice.toFixed(2)}
+              </div>
+              <div className="text-xs text-gray-600 space-y-1">
+                <div>Base: ${(menuItems.drinks.find(d => d.itemName === formData.drink)?.price || 0).toFixed(2)}</div>
+                {formData.extraShots > 0 && (
+                  <div>Extra shots ({formData.extraShots}): +${(formData.extraShots * extraPricing.extraShotPrice).toFixed(2)}</div>
+                )}
+                {formData.foam && formData.foam.toLowerCase().includes('cold foam') && (
+                  <div>Cold foam: +${extraPricing.coldFoamPrice.toFixed(2)}</div>
+                )}
               </div>
             </div>
           )}
