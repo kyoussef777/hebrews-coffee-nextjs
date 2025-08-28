@@ -85,6 +85,15 @@ export interface InventoryCostFormData {
   notes?: string;
 }
 
+export interface RaffleParticipant {
+  id: string;
+  customerName: string;
+  phoneNumber: string;
+  hasWon: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // API response types
 export interface ApiResponse<T = unknown> {
   success: boolean;

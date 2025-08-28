@@ -36,6 +36,9 @@ export default function OrderForm() {
   const [labelConfigs, setLabelConfigs] = useState<LabelSettings[]>([]);
   const [selectedLabelConfig, setSelectedLabelConfig] = useState<string>('default');
   const [defaultConfig, setDefaultConfig] = useState<LabelSettings | null>(null);
+  const [showRaffleOptIn, setShowRaffleOptIn] = useState(false);
+  const [rafflePhoneNumber, setRafflePhoneNumber] = useState('');
+  const [isSubmittingRaffle, setIsSubmittingRaffle] = useState(false);
 
   const loadLabelConfigs = useCallback(async () => {
     try {
@@ -201,6 +204,45 @@ export default function OrderForm() {
   const closeConfirmation = () => {
     setShowOrderConfirmation(false);
     setCreatedOrder(null);
+  };
+
+  const handleRaffleOptIn = () => {
+    setShowRaffleOptIn(true);
+  };
+
+  const handleRaffleSubmit = async () => {
+    if (!rafflePhoneNumber.trim() || !createdOrder) return;
+    
+    setIsSubmittingRaffle(true);
+    try {
+      const response = await fetch('/api/raffle/participants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: createdOrder.customerName,
+          phoneNumber: rafflePhoneNumber.trim()
+        }),
+      });
+
+      if (response.ok) {
+        setShowRaffleOptIn(false);
+        setRafflePhoneNumber('');
+        // Could show success message here
+      } else {
+        const error = await response.json();
+        console.error('Failed to join raffle:', error.message);
+        // Could show error message here
+      }
+    } catch (error) {
+      console.error('Error joining raffle:', error);
+    } finally {
+      setIsSubmittingRaffle(false);
+    }
+  };
+
+  const closeRaffleModal = () => {
+    setShowRaffleOptIn(false);
+    setRafflePhoneNumber('');
   };
 
   const getCurrentPrice = () => {
@@ -554,19 +596,107 @@ export default function OrderForm() {
                 </select>
               </div>
               
+              <div className="space-y-3">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => printLabel(createdOrder.id, createdOrder.orderNumber)}
+                    className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Label
+                  </button>
+                  <button
+                    onClick={closeConfirmation}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+                
+                <div className="border-t pt-3">
+                  <button
+                    onClick={handleRaffleOptIn}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    🎉 Enter Raffle!
+                  </button>
+                  <p className="text-xs text-gray-500 text-center mt-1">
+                    Win free drinks! Phone number required.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Raffle Opt-in Modal */}
+      {showRaffleOptIn && createdOrder && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">🎉 Enter Raffle</h3>
+                <button
+                  onClick={closeRaffleModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="text-sm text-green-800">
+                    <div className="font-semibold mb-1">Win Free Drinks!</div>
+                    <p>Enter your phone number to join our raffle. Winners get a free shirt!</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-sm text-gray-600">Customer: <span className="font-semibold">{createdOrder.customerName}</span></div>
+                </div>
+
+                <div>
+                  <label htmlFor="rafflePhone" className="block text-sm font-semibold text-gray-900 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    id="rafflePhone"
+                    type="tel"
+                    required
+                    value={rafflePhoneNumber}
+                    onChange={(e) => setRafflePhoneNumber(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
+                    placeholder="(555) 123-4567"
+                    maxLength={20}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    We&apos;ll only use this to contact raffle winners. No spam!
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex space-x-3">
                 <button
-                  onClick={() => printLabel(createdOrder.id, createdOrder.orderNumber)}
-                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  onClick={handleRaffleSubmit}
+                  disabled={isSubmittingRaffle || !rafflePhoneNumber.trim()}
+                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
                 >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print Label
+                  {isSubmittingRaffle ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Joining...
+                    </div>
+                  ) : (
+                    'Join Raffle'
+                  )}
                 </button>
                 <button
-                  onClick={closeConfirmation}
+                  onClick={closeRaffleModal}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
-                  Close
+                  Skip
                 </button>
               </div>
             </div>

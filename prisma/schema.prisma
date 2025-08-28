@@ -114,6 +114,18 @@ enum InventoryCategory {
 
 /// Defines user roles.  STAFF users have limited permissions; ADMIN users can access all areas including
 /// analytics, inventory management and reset actions.
+model RaffleParticipant {
+  id          String   @id @default(cuid())
+  customerName String  @map("customer_name")
+  phoneNumber  String  @map("phone_number")
+  hasWon      Boolean  @default(false) @map("has_won")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([customerName, phoneNumber])
+  @@map("raffle_participants")
+}
+
 enum Role {
   ADMIN
   STAFF

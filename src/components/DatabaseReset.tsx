@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, AlertTriangle, Lock, Database } from 'lucide-react';
+import { set } from 'zod';
 
 export default function DatabaseReset() {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,11 +10,12 @@ export default function DatabaseReset() {
   const [password, setPassword] = useState('');
   const [resetOrders, setResetOrders] = useState(false);
   const [resetInventory, setResetInventory] = useState(false);
+  const [resetRaffle, setResetRaffle] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleResetRequest = () => {
-    if (!resetOrders && !resetInventory) {
+    if (!resetOrders && !resetInventory && !resetRaffle) {
       setError('Please select at least one option to reset');
       return;
     }
@@ -41,6 +43,7 @@ export default function DatabaseReset() {
           password,
           resetOrders,
           resetInventory,
+          resetRaffle
         }),
       });
 
@@ -54,6 +57,7 @@ export default function DatabaseReset() {
         setPassword('');
         setResetOrders(false);
         setResetInventory(false);
+        setResetRaffle(false);
       } else {
         setError(data.error || 'Failed to reset database');
       }
@@ -117,13 +121,24 @@ export default function DatabaseReset() {
             <span className="text-sm font-medium text-gray-700">Reset Inventory Costs</span>
             <span className="text-sm text-gray-500">(Delete all inventory cost records)</span>
           </label>
+
+           <label className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              checked={resetRaffle}
+              onChange={(e) => setResetRaffle(e.target.checked)}
+              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">Reset Raffle</span>
+            <span className="text-sm text-gray-500">(Delete all raffle records)</span>
+          </label>
         </div>
       </div>
 
       {/* Action Button */}
       <button
         onClick={handleResetRequest}
-        disabled={isLoading || (!resetOrders && !resetInventory)}
+        disabled={isLoading || (!resetOrders && !resetInventory && !resetRaffle)}
         className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
       >
         <Trash2 className="h-4 w-4" />

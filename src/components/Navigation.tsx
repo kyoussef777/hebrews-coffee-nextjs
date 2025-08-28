@@ -17,6 +17,7 @@ import {
   Package,
   Tag,
   Settings,
+  Gift,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -53,19 +54,37 @@ export default function Navigation({ orderCounts }: NavigationProps) {
   const userRole = (session?.user as unknown as { role?: string })?.role;
   const navigation = [
     {
-      name: 'New Order',
+      name: 'Order',
       href: '/',
       icon: Home,
       current: pathname === '/',
     },
     {
-      name: 'Orders',
+      name: 'Active',
       href: '/orders',
       icon: ListOrdered,
       current: pathname === '/orders',
       badge: orderCounts ? orderCounts.pending + orderCounts.inProgress : 0,
     },
-    // Analytics only for admins
+    {
+      name: 'Menu',
+      href: '/menu',
+      icon: MenuIcon,
+      current: pathname === '/menu',
+    },
+    {
+      name: 'Labels',
+      href: '/label-editor',
+      icon: Tag,
+      current: pathname === '/label-editor',
+    },
+    {
+      name: 'Raffle',
+      href: '/raffle',
+      icon: Gift,
+      current: pathname === '/raffle',
+    },
+    // Admin-only items grouped together
     ...((userRole === 'ADMIN')
       ? [
           {
@@ -74,34 +93,12 @@ export default function Navigation({ orderCounts }: NavigationProps) {
             icon: BarChart3,
             current: pathname === '/analytics',
           },
-        ]
-      : []),
-    // Inventory only for admins
-    ...((userRole === 'ADMIN')
-      ? [
           {
             name: 'Inventory',
             href: '/inventory',
             icon: Package,
             current: pathname === '/inventory',
           },
-        ]
-      : []),
-    {
-      name: 'Menu Config',
-      href: '/menu',
-      icon: MenuIcon,
-      current: pathname === '/menu',
-    },
-    {
-      name: 'Label Editor',
-      href: '/label-editor',
-      icon: Tag,
-      current: pathname === '/label-editor',
-    },
-    // Admin page only for admins
-    ...((userRole === 'ADMIN')
-      ? [
           {
             name: 'Admin',
             href: '/admin',
@@ -125,12 +122,12 @@ export default function Navigation({ orderCounts }: NavigationProps) {
                 <div className="bg-amber-100 p-2 rounded-lg">
                   <Coffee className="h-6 w-6 text-amber-600" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">HeBrews Coffee</span>
+                <span className="text-lg lg:text-xl font-bold text-gray-900 hidden md:block">HeBrews Coffee</span>
               </Link>
             </div>
 
             {/* Navigation Links */}
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden lg:ml-6 lg:flex lg:space-x-6">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -157,7 +154,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
           </div>
 
           {/* Right side */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-2 lg:space-x-4">
             {/* Active Orders Indicator */}
             {activeOrders > 0 && (
               <div className="flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
@@ -182,10 +179,10 @@ export default function Navigation({ orderCounts }: NavigationProps) {
             )}
 
             {/* User Menu */}
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 text-sm text-gray-900 font-medium">
-                <User className="h-4 w-4" />
-                <span>{session?.user?.username}</span>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-900 font-medium">
+                <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">{session?.user?.username}</span>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
@@ -198,7 +195,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
+          <div className="flex items-center lg:hidden">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -212,7 +209,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden">
+        <div className="lg:hidden">
           <div className="pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
             {navigation.map((item) => {
               const Icon = item.icon;
