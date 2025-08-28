@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { OrderFormData, MenuConfig, Order, LabelSettings, SyrupSelection } from '@/types';
+import { OrderFormData, MenuConfig, Order, LabelSettings } from '@/types';
 import { Plus, Printer, X, Minus } from 'lucide-react';
 import { printOrderLabel } from '@/lib/printUtils';
 

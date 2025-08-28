@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { SyrupSelection } from '@/types';
 
 // GET /api/export/csv - Export completed orders as CSV
 export async function GET() {
@@ -36,7 +37,7 @@ export async function GET() {
         `"${order.customerName}"`,
         `"${order.drink}"`,
         `"${order.milk}"`,
-        `"${order.syrup || ''}"`,
+        `"${order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0 ? (order.syrups as unknown as SyrupSelection[]).map((s) => `${s.pumps}x ${s.syrupName}`).join(', ') : ''}"`,
         `"${order.foam || ''}"`,
         `"${order.temperature}"`,
         order.extraShots || 0,

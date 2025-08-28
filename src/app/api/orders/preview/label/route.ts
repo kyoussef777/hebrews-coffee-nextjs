@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { jsPDF } from 'jspdf';
-import { LabelSettings, Order } from '@/types';
+import { LabelSettings, Order, SyrupSelection } from '@/types';
 import { getEffectiveLabelConfig } from '@/lib/labelConfig';
 import { getVerseForLabel, formatVerseForLabel } from '@/lib/bibleVerse';
 
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
         case 'details':
           const details = [];
           if (order.milk !== 'Whole') details.push(order.milk);
-          if (order.syrups && order.syrups.length > 0) {
-            details.push(order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', '));
+          if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
+            details.push((order.syrups as unknown as SyrupSelection[]).map((s) => `${s.pumps}x ${s.syrupName}`).join(', '));
           }
           if (order.foam !== 'Regular Foam') details.push(order.foam);
           if (order.temperature !== 'Hot') details.push(order.temperature);

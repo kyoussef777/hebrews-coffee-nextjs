@@ -118,7 +118,7 @@ function LabelEditorContent() {
         customerName: 'John Doe',
         drink: 'Cappuccino',
         milk: 'Oat Milk',
-        syrup: 'Vanilla',
+        syrups: [{ syrupName: 'Vanilla', pumps: 2 }, { syrupName: 'Caramel', pumps: 1 }],
         foam: 'Extra Foam',
         temperature: 'Extra Hot',
         extraShots: 1,

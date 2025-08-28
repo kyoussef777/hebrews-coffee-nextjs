@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin, errorResponse } from '@/lib/apiUtils';
 import { prisma } from '@/lib/db';
+import { SyrupSelection } from '@/types';
 
 // GET /api/analytics - Get analytics data
 export async function GET() {
@@ -42,9 +43,16 @@ export async function GET() {
       // Milk counts
       milkCounts[order.milk] = (milkCounts[order.milk] || 0) + 1;
       
-      // Syrup counts
-      if (order.syrup) {
-        syrupCounts[order.syrup] = (syrupCounts[order.syrup] || 0) + 1;
+      // Syrup counts - handle both old and new formats
+      if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
+        // New format: array of {syrupName, pumps}
+        (order.syrups as unknown as SyrupSelection[]).forEach((syrup) => {
+          syrupCounts[syrup.syrupName] = (syrupCounts[syrup.syrupName] || 0) + syrup.pumps;
+        });
+      } else if ((order as any).syrup && typeof (order as any).syrup === 'string') {
+        // Old format: single syrup string (legacy support)
+        const syrupName = (order as any).syrup;
+        syrupCounts[syrupName] = (syrupCounts[syrupName] || 0) + 1;
       }
       
       // Temperature counts
@@ -72,6 +80,13 @@ export async function GET() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([name, count]) => ({ name, count }));
+
+    // Debug logging
+    console.log('Analytics debug:', {
+      totalOrders,
+      syrupCounts,
+      mostPopularSyrup: mostPopular.syrup
+    });
 
     const analyticsData = {
       totalOrders,

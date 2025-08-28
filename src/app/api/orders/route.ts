@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         customerName: body.customerName.trim(),
         drink: body.drink,
         milk: body.milk,
-        syrups: body.syrups || [],
+        syrups: JSON.parse(JSON.stringify(body.syrups || [])),
         foam: body.foam || null,
         temperature: body.temperature,
         extraShots: body.extraShots || 0,

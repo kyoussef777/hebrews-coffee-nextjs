@@ -23,8 +23,11 @@ export default function AnalyticsDashboard() {
     try {
       const response = await fetch('/api/analytics');
       const data = await response.json();
+      console.log('Analytics data received:', data);
       if (data.success) {
         setAnalytics(data.data);
+      } else {
+        console.error('Analytics API failed:', data);
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -291,9 +294,9 @@ export default function AnalyticsDashboard() {
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-700">Drink:</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-900">{analytics.mostPopular.drink[0]}</span>
+                <span className="text-sm text-gray-900">{analytics.mostPopular.drink?.[0] || 'None'}</span>
                 <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                  {analytics.mostPopular.drink[1]}
+                  {analytics.mostPopular.drink?.[1] || 0}
                 </span>
               </div>
             </div>
@@ -301,9 +304,9 @@ export default function AnalyticsDashboard() {
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-700">Milk:</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-900">{analytics.mostPopular.milk[0]}</span>
+                <span className="text-sm text-gray-900">{analytics.mostPopular.milk?.[0] || 'None'}</span>
                 <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                  {analytics.mostPopular.milk[1]}
+                  {analytics.mostPopular.milk?.[1] || 0}
                 </span>
               </div>
             </div>
@@ -311,9 +314,11 @@ export default function AnalyticsDashboard() {
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-700">Syrup:</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-900">{analytics.mostPopular.syrup[0]}</span>
+                <span className="text-sm text-gray-900">
+                  {analytics.mostPopular.syrup?.[0] || 'None'}
+                </span>
                 <span className="inline-flex px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">
-                  {analytics.mostPopular.syrup[1]}
+                  {analytics.mostPopular.syrup?.[1] || 0}
                 </span>
               </div>
             </div>

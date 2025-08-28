@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { SyrupSelection } from '@/types';
 
 interface OrderCostCalculation {
   orderId: string;
@@ -56,14 +57,17 @@ export async function GET() {
         estimatedCost += milkCost.unitCost * 0.75; // 6oz = ~0.75 cups
       }
 
-      // Syrup cost
-      if (order.syrup) {
-        const syrupCost = syrupCosts.find(cost => 
-          cost.itemName.toLowerCase().includes(order.syrup!.toLowerCase())
-        );
-        if (syrupCost) {
-          estimatedCost += syrupCost.unitCost * 0.5; // ~0.5oz of syrup
-        }
+      // Syrup costs
+      if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
+        (order.syrups as unknown as SyrupSelection[]).forEach((syrup) => {
+          const syrupCost = syrupCosts.find(cost => 
+            cost.itemName.toLowerCase().includes(syrup.syrupName.toLowerCase())
+          );
+          if (syrupCost) {
+            // Cost per pump (assuming ~0.5oz per pump)
+            estimatedCost += syrupCost.unitCost * (syrup.pumps * 0.5);
+          }
+        });
       }
 
       // Labor cost removed as requested

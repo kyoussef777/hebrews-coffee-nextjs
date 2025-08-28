@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { jsPDF } from 'jspdf';
 import { getEffectiveLabelConfig } from '@/lib/labelConfig';
 import { getVerseForLabel, formatVerseForLabel } from '@/lib/bibleVerse';
+import { SyrupSelection } from '@/types';
 
 // GET /api/orders/[id]/label - Generate PDF label for order
 export async function GET(
@@ -70,8 +71,8 @@ export async function GET(
         case 'details':
           const details = [];
           if (order.milk !== 'Whole') details.push(order.milk);
-          if (order.syrups && order.syrups.length > 0) {
-            details.push(order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', '));
+          if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
+            details.push((order.syrups as unknown as SyrupSelection[]).map((s) => `${s.pumps}x ${s.syrupName}`).join(', '));
           }
           if (order.foam !== 'Regular Foam') details.push(order.foam);
           if (order.temperature !== 'Hot') details.push(order.temperature);
