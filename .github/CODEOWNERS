@@ -1,0 +1,23 @@
+# Global code owners
+* @kyoussef
+
+# Database and schema changes
+/prisma/ @kyoussef
+*.sql @kyoussef
+
+# Security-sensitive files
+/.github/workflows/ @kyoussef
+/src/middleware.ts @kyoussef
+/src/lib/auth.ts @kyoussef
+/Dockerfile* @kyoussef
+/docker-compose*.yml @kyoussef
+
+# Configuration files
+/next.config.ts @kyoussef
+/tsconfig.json @kyoussef
+/package.json @kyoussef
+/.env* @kyoussef
+
+# Deployment scripts
+/deploy.sh @kyoussef
+/scripts/ @kyoussef

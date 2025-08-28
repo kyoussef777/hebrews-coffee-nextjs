@@ -586,7 +586,7 @@ export default function OrderForm() {
                     🎉 Enter Raffle!
                   </button>
                   <p className="text-xs text-gray-500 text-center mt-1">
-                    Win free drinks! Phone number required.
+                    Ask if the customer wants to sign up for the t-shirt raffle! Phone number required.
                   </p>
                 </div>
               </div>

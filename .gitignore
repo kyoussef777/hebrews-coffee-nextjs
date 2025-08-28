@@ -96,3 +96,22 @@ ehthumbs.db
 # Claude Code settings (keep local settings only)
 .claude/settings.local.json
 .claude
+
+# Security and sensitive files
+secrets.txt
+*.key
+*.crt
+*.p12
+*.pfx
+auth-keys/
+private-keys/
+
+# Backup and temporary files
+*.bak
+*.backup
+*.old
+
+# Test artifacts
+test-results/
+junit.xml
+coverage-report/
