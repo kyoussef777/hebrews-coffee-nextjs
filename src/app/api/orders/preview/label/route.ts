@@ -60,7 +60,9 @@ export async function POST(request: NextRequest) {
         case 'details':
           const details = [];
           if (order.milk !== 'Whole') details.push(order.milk);
-          if (order.syrup) details.push(order.syrup);
+          if (order.syrups && order.syrups.length > 0) {
+            details.push(order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', '));
+          }
           if (order.foam !== 'Regular Foam') details.push(order.foam);
           if (order.temperature !== 'Hot') details.push(order.temperature);
           if (order.extraShots > 0) details.push(`${order.extraShots} Extra Shot${order.extraShots > 1 ? 's' : ''}`);

@@ -29,7 +29,7 @@ model Order {
   customerName String   @map("customer_name")
   drink        String
   milk         String
-  syrup        String?
+  syrups       Json?    @default("[]") // Array of {syrupName: string, pumps: number}
   foam         String?
   temperature  String
   extraShots   Int      @default(0) @map("extra_shots")

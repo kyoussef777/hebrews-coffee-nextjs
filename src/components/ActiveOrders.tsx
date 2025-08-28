@@ -157,7 +157,7 @@ export default function ActiveOrders() {
                   {order.customerName}&apos;s {order.drink}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {order.milk}, {order.syrup || 'No syrup'}, {order.foam}, {order.temperature}
+                  {order.milk}, {order.syrups && order.syrups.length > 0 ? order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}, {order.foam}, {order.temperature}
                   {order.extraShots > 0 && <span className="ml-1 text-amber-600">+ {order.extraShots} Extra Shot{order.extraShots > 1 ? 's' : ''}</span>}
                 </p>
                 {order.notes && (

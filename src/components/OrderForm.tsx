@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { OrderFormData, MenuConfig, Order, LabelSettings } from '@/types';
-import { Plus, Printer, X } from 'lucide-react';
+import { OrderFormData, MenuConfig, Order, LabelSettings, SyrupSelection } from '@/types';
+import { Plus, Printer, X, Minus } from 'lucide-react';
 import { printOrderLabel } from '@/lib/printUtils';
 
 export default function OrderForm() {
@@ -10,7 +10,7 @@ export default function OrderForm() {
     customerName: '',
     drink: '',
     milk: '',
-    syrup: '',
+    syrups: [],
     foam: '',
     temperature: 'Hot',
     extraShots: 0,
@@ -172,7 +172,7 @@ export default function OrderForm() {
           customerName: '',
           drink: '',
           milk: menuItems.milks[0]?.itemName || '',
-          syrup: '',
+          syrups: [],
           foam: menuItems.foams[0]?.itemName || '',
           temperature: 'Hot',
           extraShots: 0,
@@ -230,6 +230,53 @@ export default function OrderForm() {
   const closeRaffleModal = () => {
     setShowRaffleOptIn(false);
     setRafflePhoneNumber('');
+  };
+
+  const addSyrup = (syrupName: string) => {
+    const existingSyrup = formData.syrups.find(s => s.syrupName === syrupName);
+    if (existingSyrup) {
+      // Increase pumps for existing syrup
+      setFormData({
+        ...formData,
+        syrups: formData.syrups.map(s => 
+          s.syrupName === syrupName 
+            ? { ...s, pumps: Math.min(s.pumps + 1, 10) } // Max 10 pumps
+            : s
+        )
+      });
+    } else {
+      // Add new syrup with 1 pump
+      setFormData({
+        ...formData,
+        syrups: [...formData.syrups, { syrupName, pumps: 1 }]
+      });
+    }
+  };
+
+  const removeSyrup = (syrupName: string) => {
+    const existingSyrup = formData.syrups.find(s => s.syrupName === syrupName);
+    if (existingSyrup && existingSyrup.pumps > 1) {
+      // Decrease pumps
+      setFormData({
+        ...formData,
+        syrups: formData.syrups.map(s => 
+          s.syrupName === syrupName 
+            ? { ...s, pumps: s.pumps - 1 }
+            : s
+        )
+      });
+    } else {
+      // Remove syrup entirely
+      setFormData({
+        ...formData,
+        syrups: formData.syrups.filter(s => s.syrupName !== syrupName)
+      });
+    }
+  };
+
+  const getSyrupPumps = (syrupName: string): number => {
+    const syrup = formData.syrups.find(s => s.syrupName === syrupName);
+    return syrup ? syrup.pumps : 0;
   };
 
   const currentPrice = useMemo(() => {
@@ -372,37 +419,58 @@ export default function OrderForm() {
           {/* Syrup Selection */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Syrup
+              Syrups (tap to add/remove pumps)
             </label>
-            <div className="scroll-container border border-gray-200 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 max-h-32 md:max-h-48 lg:max-h-64 overflow-y-auto p-2 scrollbar-thin">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, syrup: '' })}
-                  className={`p-2 rounded-lg border-2 text-center transition-all ${
-                    formData.syrup === ''
-                      ? 'border-amber-500 bg-amber-50 text-amber-900'
-                      : 'border-gray-200 bg-white hover:border-amber-300'
-                  }`}
-                >
-                  <div className="font-medium text-xs">None</div>
-                </button>
-                {menuItems.syrups.map((syrup) => (
-                  <button
-                    key={syrup.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, syrup: syrup.itemName })}
-                    className={`p-2 rounded-lg border-2 text-center transition-all ${
-                      formData.syrup === syrup.itemName
-                        ? 'border-amber-500 bg-amber-50 text-amber-900'
-                        : 'border-gray-200 bg-white hover:border-amber-300'
-                    }`}
-                  >
-                    <div className="font-medium text-xs">{syrup.itemName}</div>
-                  </button>
-                ))}
+            <div className="space-y-2">
+              {/* Selected Syrups Display */}
+              {formData.syrups.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                  <div className="text-xs font-semibold text-amber-800 mb-2">Selected:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {formData.syrups.map((syrup) => (
+                      <span key={syrup.syrupName} className="bg-amber-200 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">
+                        {syrup.pumps} {syrup.pumps === 1 ? 'pump' : 'pumps'} {syrup.syrupName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Syrup Options */}
+              <div className="scroll-container border border-gray-200 rounded-lg">
+                <div className="grid grid-cols-2 gap-2 max-h-32 md:max-h-48 lg:max-h-64 overflow-y-auto p-2 scrollbar-thin">
+                  {menuItems.syrups.map((syrup) => {
+                    const pumps = getSyrupPumps(syrup.itemName);
+                    return (
+                      <div key={syrup.id} className="border border-gray-200 rounded-lg p-2 bg-white">
+                        <div className="font-medium text-xs text-center mb-2">{syrup.itemName}</div>
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => removeSyrup(syrup.itemName)}
+                            disabled={pumps === 0}
+                            className="w-6 h-6 rounded-full bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="text-sm font-semibold min-w-[2rem] text-center">
+                            {pumps === 0 ? '0' : `${pumps}`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => addSyrup(syrup.itemName)}
+                            disabled={pumps >= 10}
+                            className="w-6 h-6 rounded-full bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="scroll-fade-bottom"></div>
               </div>
-              <div className="scroll-fade-bottom"></div>
             </div>
           </div>
 
@@ -532,6 +600,9 @@ export default function OrderForm() {
                 {formData.extraShots > 0 && (
                   <div>Extra shots ({formData.extraShots}): +${(formData.extraShots * extraPricing.extraShotPrice).toFixed(2)}</div>
                 )}
+                {formData.syrups.length > 0 && (
+                  <div>Syrups: {formData.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ')}</div>
+                )}
                 {formData.foam && formData.foam.toLowerCase().includes('cold foam') && (
                   <div>Cold foam: +${extraPricing.coldFoamPrice.toFixed(2)}</div>
                 )}
@@ -585,7 +656,7 @@ export default function OrderForm() {
                   <div className="font-semibold text-gray-900">{createdOrder.customerName}</div>
                   <div className="text-sm text-gray-700">{createdOrder.drink}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {createdOrder.milk}, {createdOrder.syrup || 'No syrup'}, {createdOrder.foam}, {createdOrder.temperature}
+                    {createdOrder.milk}, {createdOrder.syrups && createdOrder.syrups.length > 0 ? createdOrder.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}, {createdOrder.foam}, {createdOrder.temperature}
                     {createdOrder.extraShots > 0 && <span className="ml-1 text-amber-600">+ {createdOrder.extraShots} Extra Shot{createdOrder.extraShots > 1 ? 's' : ''}</span>}
                   </div>
                   {createdOrder.notes && (

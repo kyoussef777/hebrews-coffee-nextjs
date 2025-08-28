@@ -310,7 +310,7 @@ export default function OrdersTable() {
                     
                     <td className="px-6 py-4">
                       <div className="text-base text-gray-900">
-                        {order.milk}, {order.syrup || 'No syrup'}
+                        {order.milk}, {order.syrups && order.syrups.length > 0 ? order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}
                       </div>
                       <div className="text-base text-gray-700">
                         {order.foam}, {order.temperature}

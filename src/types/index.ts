@@ -3,13 +3,18 @@ export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 export type MenuItemType = 'DRINK' | 'MILK' | 'SYRUP' | 'FOAM' | 'TEMPERATURE';
 export type InventoryCategory = 'COFFEE_BEANS' | 'MILK' | 'SYRUP' | 'EQUIPMENT' | 'SUPPLIES' | 'LABOR' | 'OTHER';
 
+export interface SyrupSelection {
+  syrupName: string;
+  pumps: number;
+}
+
 export interface Order {
   id: string;
   orderNumber: number;
   customerName: string;
   drink: string;
   milk: string;
-  syrup?: string | null;
+  syrups?: SyrupSelection[] | null;
   foam?: string | null;
   temperature: string;
   extraShots: number;
@@ -53,7 +58,7 @@ export interface OrderFormData {
   customerName: string;
   drink: string;
   milk: string;
-  syrup?: string;
+  syrups: SyrupSelection[];
   foam?: string;
   temperature: string;
   extraShots: number;
