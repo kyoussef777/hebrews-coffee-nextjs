@@ -139,6 +139,15 @@ export interface InventoryItemFormData {
   lastRestocked?: Date;
 }
 
+// Legacy interface for old cost-based inventory system (if needed)
+export interface LegacyInventoryItemFormData {
+  costItemId: string;
+  initialQuantity: number;
+  currentStock: number;
+  reorderLevel?: number;
+  lastRestocked?: Date;
+}
+
 export interface SimpleInventoryItem {
   id: string;
   itemName: string;
