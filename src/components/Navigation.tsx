@@ -79,7 +79,7 @@ export default function Navigation({ orderCounts }: NavigationProps) {
       current: pathname === '/label-editor',
     },
     {
-      name: 'Raffle',
+      name: 'Giveaway',
       href: '/raffle',
       icon: Gift,
       current: pathname === '/raffle',

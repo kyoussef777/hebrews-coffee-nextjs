@@ -73,7 +73,62 @@ model InventoryCost {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Relation to inventory items
+  inventoryItems InventoryItem[]
+
   @@map("inventory_costs")
+}
+
+model InventoryItem {
+  id                String   @id @default(cuid())
+  costItemId        String   @map("cost_item_id")
+  initialQuantity   Float    @default(0) @map("initial_quantity")    // Quantity purchased (for cost calculation)
+  currentStock      Float    @default(0) @map("current_stock")  // Current inventory quantity
+  reorderLevel      Float?   @map("reorder_level")       // When to reorder
+  lastRestocked     DateTime? @map("last_restocked")
+  totalCost         Float?   @map("total_cost")          // Calculated: unitCost * initialQuantity
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  costItem          InventoryCost @relation(fields: [costItemId], references: [id], onDelete: Cascade)
+  usageEntries      InventoryUsageEntry[]
+
+  @@unique([costItemId])
+  @@map("inventory_items")
+}
+
+model InventoryUsageSession {
+  id           String   @id @default(cuid())
+  date         DateTime @default(now()) @db.Date
+  isActive     Boolean  @default(true) @map("is_active")  // false when day is closed
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  usageEntries InventoryUsageEntry[]
+
+  @@unique([date])
+  @@map("inventory_usage_sessions")
+}
+
+model InventoryUsageEntry {
+  id                String   @id @default(cuid())
+  sessionId         String   @map("session_id")
+  inventoryItemId   String   @map("inventory_item_id")
+  startingQuantity  Float    @map("starting_quantity")
+  endingQuantity    Float?   @map("ending_quantity")  // null until end of day
+  usedQuantity      Float?   @map("used_quantity")    // calculated field
+  notes             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  session       InventoryUsageSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, inventoryItemId])
+  @@map("inventory_usage_entries")
 }
 
 model LabelSettings {
@@ -129,4 +184,40 @@ model RaffleParticipant {
 enum Role {
   ADMIN
   STAFF
+}
+
+/// Simple inventory tracking focused on quantities only
+model SimpleInventory {
+  id              String   @id @default(cuid())
+  itemName        String   @map("item_name")
+  category        InventoryCategory
+  initialQuantity Float    @default(0) @map("initial_quantity")
+  currentStock    Float    @default(0) @map("current_stock")
+  unit            String
+  reorderLevel    Float?   @map("reorder_level")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations for quantity tracking over time
+  quantityLogs    QuantityLog[]
+
+  @@map("simple_inventory")
+}
+
+/// Track quantity changes over time
+model QuantityLog {
+  id                String   @id @default(cuid())
+  simpleInventoryId String   @map("simple_inventory_id")
+  previousQuantity  Float    @map("previous_quantity")
+  newQuantity       Float    @map("new_quantity")
+  changeAmount      Float    @map("change_amount")  // newQuantity - previousQuantity
+  changeReason      String?  @map("change_reason")  // "initial_stock", "usage", "restock", "adjustment"
+  notes             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  simpleInventory   SimpleInventory @relation(fields: [simpleInventoryId], references: [id], onDelete: Cascade)
+
+  @@map("quantity_logs")
 }

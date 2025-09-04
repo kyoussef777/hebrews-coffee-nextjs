@@ -17,7 +17,7 @@ export default async function RafflePage() {
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">🎉 T-Shirt Raffle</h1>
+            <h1 className="text-2xl font-bold text-gray-900">🎉 T-Shirt Giveaway</h1>
             <p className="text-sm text-gray-600 mt-1">
               Manage raffle participants and draw winners
             </p>

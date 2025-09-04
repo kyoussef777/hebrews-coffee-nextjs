@@ -80,6 +80,44 @@ export interface InventoryCost {
   notes?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  inventoryItems?: InventoryItem[];
+}
+
+export interface InventoryItem {
+  id: string;
+  costItemId: string;
+  initialQuantity: number;
+  currentStock: number;
+  reorderLevel?: number | null;
+  lastRestocked?: Date | null;
+  totalCost?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  costItem?: InventoryCost;
+  usageEntries?: InventoryUsageEntry[];
+}
+
+export interface InventoryUsageSession {
+  id: string;
+  date: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  usageEntries?: InventoryUsageEntry[];
+}
+
+export interface InventoryUsageEntry {
+  id: string;
+  sessionId: string;
+  inventoryItemId: string;
+  startingQuantity: number;
+  endingQuantity?: number | null;
+  usedQuantity?: number | null;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  session?: InventoryUsageSession;
+  inventoryItem?: InventoryItem;
 }
 
 export interface InventoryCostFormData {
@@ -88,6 +126,42 @@ export interface InventoryCostFormData {
   unitCost: number;
   unit: string;
   notes?: string;
+}
+
+export interface InventoryItemFormData {
+  itemName: string;
+  category: InventoryCategory;
+  initialQuantity: number;
+  currentStock: number;
+  unit: string;
+  reorderLevel?: number;
+  notes?: string;
+  lastRestocked?: Date;
+}
+
+export interface SimpleInventoryItem {
+  id: string;
+  itemName: string;
+  category: InventoryCategory;
+  initialQuantity: number;
+  currentStock: number;
+  unit: string;
+  reorderLevel?: number | null;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InventoryUsageEntryFormData {
+  inventoryItemId: string;
+  startingQuantity: number;
+  endingQuantity?: number;
+  notes?: string;
+}
+
+export interface InventoryUsageSessionData {
+  date: string;
+  entries: InventoryUsageEntryFormData[];
 }
 
 export interface RaffleParticipant {

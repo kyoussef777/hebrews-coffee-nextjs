@@ -1,21 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { InventoryCost, InventoryCostFormData, InventoryCategory } from '@/types';
-import { Plus, Edit, Trash2, DollarSign, Package } from 'lucide-react';
+import { SimpleInventoryItem, InventoryItemFormData, InventoryCategory } from '@/types';
+import { Plus, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 
 export default function InventoryManager() {
-  const [inventoryCosts, setInventoryCosts] = useState<InventoryCost[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<SimpleInventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<InventoryCost | null>(null);
+  const [editingItem, setEditingItem] = useState<SimpleInventoryItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  const [formData, setFormData] = useState<InventoryCostFormData>({
+  const [formData, setFormData] = useState<InventoryItemFormData>({
     itemName: '',
     category: 'COFFEE_BEANS',
-    unitCost: 0,
+    initialQuantity: 0,
+    currentStock: 0,
     unit: '',
+    reorderLevel: 0,
     notes: '',
   });
 
@@ -30,24 +32,24 @@ export default function InventoryManager() {
   ];
 
   useEffect(() => {
-    loadInventoryCosts();
+    loadInventoryItems();
   }, [selectedCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadInventoryCosts = async () => {
+  const loadInventoryItems = async () => {
     try {
       const url = selectedCategory 
-        ? `/api/inventory-costs?category=${selectedCategory}`
-        : '/api/inventory-costs';
+        ? `/api/simple-inventory?category=${selectedCategory}`
+        : '/api/simple-inventory';
       
       const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
-        setInventoryCosts(data.data);
+        setInventoryItems(data.data);
       } else {
-        console.error('Failed to load inventory costs:', data.error);
+        console.error('Failed to load inventory items:', data.error);
       }
     } catch (error) {
-      console.error('Error loading inventory costs:', error);
+      console.error('Error loading inventory items:', error);
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +60,8 @@ export default function InventoryManager() {
     
     try {
       const url = editingItem 
-        ? `/api/inventory-costs/${editingItem.id}`
-        : '/api/inventory-costs';
+        ? `/api/simple-inventory/${editingItem.id}`
+        : '/api/simple-inventory';
       
       const method = editingItem ? 'PATCH' : 'POST';
       
@@ -70,46 +72,48 @@ export default function InventoryManager() {
       });
 
       if (response.ok) {
-        await loadInventoryCosts();
+        await loadInventoryItems();
         resetForm();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to save inventory cost');
+        alert(error.error || 'Failed to save inventory item');
       }
     } catch (error) {
-      console.error('Error saving inventory cost:', error);
-      alert('Error saving inventory cost');
+      console.error('Error saving inventory item:', error);
+      alert('Error saving inventory item');
     }
   };
 
-  const handleEdit = (item: InventoryCost) => {
+  const handleEdit = (item: SimpleInventoryItem) => {
     setEditingItem(item);
     setFormData({
       itemName: item.itemName,
       category: item.category,
-      unitCost: item.unitCost,
+      initialQuantity: item.initialQuantity,
+      currentStock: item.currentStock,
       unit: item.unit,
+      reorderLevel: item.reorderLevel || 0,
       notes: item.notes || '',
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (item: InventoryCost) => {
+  const handleDelete = async (item: SimpleInventoryItem) => {
     if (!confirm(`Are you sure you want to delete "${item.itemName}"?`)) return;
 
     try {
-      const response = await fetch(`/api/inventory-costs/${item.id}`, {
+      const response = await fetch(`/api/simple-inventory/${item.id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        await loadInventoryCosts();
+        await loadInventoryItems();
       } else {
-        alert('Failed to delete inventory cost');
+        alert('Failed to delete inventory item');
       }
     } catch (error) {
-      console.error('Error deleting inventory cost:', error);
-      alert('Error deleting inventory cost');
+      console.error('Error deleting inventory item:', error);
+      alert('Error deleting inventory item');
     }
   };
 
@@ -117,25 +121,29 @@ export default function InventoryManager() {
     setFormData({
       itemName: '',
       category: 'COFFEE_BEANS',
-      unitCost: 0,
+      initialQuantity: 0,
+      currentStock: 0,
       unit: '',
+      reorderLevel: 0,
       notes: '',
     });
     setEditingItem(null);
     setShowForm(false);
   };
 
-  const getTotalCostByCategory = () => {
-    const costsByCategory = inventoryCosts.reduce((acc, item) => {
+  const getQuantityByCategory = () => {
+    const quantityByCategory = inventoryItems.reduce((acc, item) => {
       if (!acc[item.category]) acc[item.category] = 0;
-      acc[item.category] += item.unitCost;
+      acc[item.category] += item.currentStock;
       return acc;
     }, {} as Record<string, number>);
     
-    return costsByCategory;
+    return quantityByCategory;
   };
 
-  const totalInventoryValue = inventoryCosts.reduce((sum, item) => sum + item.unitCost, 0);
+  const totalItems = inventoryItems.length;
+  const totalQuantity = inventoryItems.reduce((sum, item) => sum + item.currentStock, 0);
+  const lowStockItems = inventoryItems.filter(item => item.reorderLevel && item.currentStock <= item.reorderLevel).length;
 
   if (isLoading) {
     return (
@@ -165,13 +173,23 @@ export default function InventoryManager() {
             ))}
           </select>
           
-          {/* Total Value Display */}
+          {/* Total Quantity Display */}
           <div className="flex items-center justify-center sm:justify-start space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg">
-            <DollarSign className="h-4 w-4" />
+            <Package className="h-4 w-4" />
             <span className="font-medium text-sm sm:text-base">
-              Total: ${totalInventoryValue.toFixed(2)}
+              Total Quantity: {totalQuantity}
             </span>
           </div>
+          
+          {/* Low Stock Alert */}
+          {lowStockItems > 0 && (
+            <div className="flex items-center justify-center sm:justify-start space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="font-medium text-sm sm:text-base">
+                {lowStockItems} Low Stock
+              </span>
+            </div>
+          )}
         </div>
         
         <button
@@ -187,7 +205,7 @@ export default function InventoryManager() {
       {showForm && (
         <div className="bg-gray-100 p-6 rounded-lg border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingItem ? 'Edit Cost Item' : 'Add New Cost Item'}
+            {editingItem ? 'Edit Inventory Item' : 'Add New Inventory Item'}
           </h3>
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -227,17 +245,34 @@ export default function InventoryManager() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unit Cost ($)
+                Initial Quantity
               </label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 required
-                value={formData.unitCost}
-                onChange={(e) => setFormData({ ...formData, unitCost: parseFloat(e.target.value) || 0 })}
+                value={formData.initialQuantity}
+                onChange={(e) => setFormData({ ...formData, initialQuantity: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                placeholder="0.00"
+                placeholder="0"
+                style={{ fontSize: '16px' }}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Stock
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                value={formData.currentStock}
+                onChange={(e) => setFormData({ ...formData, currentStock: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                placeholder="0"
                 style={{ fontSize: '16px' }}
               />
             </div>
@@ -257,6 +292,22 @@ export default function InventoryManager() {
               />
             </div>
             
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reorder Level (Optional)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.reorderLevel || 0}
+                onChange={(e) => setFormData({ ...formData, reorderLevel: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                placeholder="0"
+                style={{ fontSize: '16px' }}
+              />
+            </div>
+            
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Notes (Optional)
@@ -266,7 +317,7 @@ export default function InventoryManager() {
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                placeholder="Additional notes about this cost item..."
+                placeholder="Additional notes about this inventory item..."
                 style={{ fontSize: '16px' }}
               />
             </div>
@@ -276,7 +327,7 @@ export default function InventoryManager() {
                 type="submit"
                 className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                {editingItem ? 'Update' : 'Add'} Cost Item
+                {editingItem ? 'Update' : 'Add'} Inventory Item
               </button>
               <button
                 type="button"
@@ -303,13 +354,16 @@ export default function InventoryManager() {
                   Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Unit Cost
+                  Initial Qty
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Current Stock
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Unit
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Notes
+                  Status
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -317,44 +371,56 @@ export default function InventoryManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {inventoryCosts.length === 0 ? (
+              {inventoryItems.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
                     <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                     <p className="text-gray-500">
                       {selectedCategory 
-                        ? `No cost items found for ${categories.find(c => c.value === selectedCategory)?.label}`
-                        : 'No inventory costs added yet'}
+                        ? `No inventory items found for ${categories.find(c => c.value === selectedCategory)?.label}`
+                        : 'No inventory items added yet'}
                     </p>
                     <button
                       onClick={() => setShowForm(true)}
                       className="mt-2 text-amber-600 hover:text-amber-700 font-medium"
                     >
-                      Add your first cost item
+                      Add your first inventory item
                     </button>
                   </td>
                 </tr>
               ) : (
-                inventoryCosts.map((item) => (
+                inventoryItems.map((item) => {
+                  const needsReorder = item.reorderLevel && item.currentStock <= item.reorderLevel;
+                  return (
                   <tr key={item.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{item.itemName}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 text-white">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-white">
                         {categories.find(c => c.value === item.category)?.label}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-gray-900 font-medium">${item.unitCost.toFixed(2)}</div>
+                      <div className="text-gray-900 font-medium">{item.initialQuantity}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-900 font-medium">{item.currentStock} {item.unit}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">{item.unit}</div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-gray-500 text-sm max-w-xs truncate">
-                        {item.notes || '-'}
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {needsReorder ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Low Stock
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          In Stock
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end space-x-2">
@@ -375,7 +441,8 @@ export default function InventoryManager() {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -383,20 +450,35 @@ export default function InventoryManager() {
       </div>
 
       {/* Category Summary */}
-      {inventoryCosts.length > 0 && (
+      {inventoryItems.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cost Summary by Category</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Summary by Category</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(getTotalCostByCategory()).map(([category, total]) => (
+            {Object.entries(getQuantityByCategory()).map(([category, total]) => (
               <div key={category} className="bg-gray-100 p-4 rounded-lg">
                 <div className="text-sm text-gray-500">
                   {categories.find(c => c.value === category)?.label}
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
-                  ${total.toFixed(2)}
+                  {total} items
                 </div>
               </div>
             ))}
+          </div>
+          
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-sm text-blue-600">Total Items</div>
+              <div className="text-2xl font-bold text-blue-900">{totalItems}</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-sm text-green-600">Total Quantity</div>
+              <div className="text-2xl font-bold text-green-900">{totalQuantity}</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <div className="text-sm text-red-600">Low Stock Items</div>
+              <div className="text-2xl font-bold text-red-900">{lowStockItems}</div>
+            </div>
           </div>
         </div>
       )}

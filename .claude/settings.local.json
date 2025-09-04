@@ -21,7 +21,8 @@
       "Bash(git check-ignore:*)",
       "Bash(echo \"Exit code: $?\")",
       "Bash(npx snyk test:*)",
-      "Bash(npx snyk:*)"
+      "Bash(npx snyk:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
