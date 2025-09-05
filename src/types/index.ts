@@ -216,6 +216,7 @@ export interface AnalyticsData {
   };
 }
 
+// Legacy profit analytics interface (kept for compatibility)
 export interface ProfitAnalytics {
   summary: {
     totalRevenue: number;
@@ -262,6 +263,69 @@ export interface ProfitAnalytics {
     estimatedCost: number;
     profit: number;
     margin: number;
+  }>;
+}
+
+// New usage analytics interface for quantity tracking
+export interface UsageAnalytics {
+  summary: {
+    totalItems: number;
+    totalCurrentStock: number;
+    totalInitialStock: number;
+    totalUsed: number;
+    lowStockItems: number;
+    averageUsageRate: number;
+  };
+  periods: {
+    monthly: {
+      orders: number;
+      revenue: number;
+      totalQuantityUsed: number;
+    };
+    weekly: {
+      orders: number;
+      revenue: number;
+      totalQuantityUsed: number;
+    };
+  };
+  quantityBreakdown: {
+    coffee: number;
+    milk: number;
+    syrups: number;
+    supplies: number;
+  };
+  inventory: {
+    totalItems: number;
+    byCategory: {
+      coffee: number;
+      milk: number;
+      syrups: number;
+      supplies: number;
+      equipment: number;
+      other: number;
+    };
+  };
+  usageAnalysis: Array<{
+    itemId: string;
+    itemName: string;
+    category: string;
+    initialQuantity: number;
+    currentStock: number;
+    totalUsed: number;
+    usageRate: number;
+    daysOfStockLeft: number;
+    needsReorder: boolean;
+  }>;
+  lowStockItems: Array<{
+    itemId: string;
+    itemName: string;
+    category: string;
+    initialQuantity: number;
+    currentStock: number;
+    totalUsed: number;
+    usageRate: number;
+    daysOfStockLeft: number;
+    needsReorder: boolean;
   }>;
 }
 

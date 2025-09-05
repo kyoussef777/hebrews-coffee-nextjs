@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { SyrupSelection } from '@/types';
 
-interface OrderCostCalculation {
-  orderId: string;
-  revenue: number;
-  estimatedCost: number;
-  profit: number;
-  margin: number;
+interface InventoryUsageAnalysis {
+  itemId: string;
+  itemName: string;
+  category: string;
+  initialQuantity: number;
+  currentStock: number;
+  totalUsed: number;
+  usageRate: number; // usage per day
+  daysOfStockLeft: number;
+  needsReorder: boolean;
 }
 
-// GET /api/analytics/profit - Get profit analysis
+// GET /api/analytics/profit - Get inventory usage analysis (formerly profit)
 export async function GET() {
   try {
     const session = await auth();
@@ -19,156 +22,141 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all completed orders
+    // Get all orders for usage pattern analysis
     const orders = await prisma.order.findMany({
       where: { status: 'COMPLETED' },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Get all inventory costs
-    const inventoryCosts = await prisma.inventoryCost.findMany();
+    // Get all simple inventory items with their quantity logs
+    const inventoryItems = await prisma.simpleInventory.findMany({
+      include: {
+        quantityLogs: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
 
-    // Create cost lookup maps
-    const coffeeCosts = inventoryCosts.filter(cost => cost.category === 'COFFEE_BEANS');
-    const milkCosts = inventoryCosts.filter(cost => cost.category === 'MILK');
-    const syrupCosts = inventoryCosts.filter(cost => cost.category === 'SYRUP');
-    // Remove labor costs as requested
-    const supplyCosts = inventoryCosts.filter(cost => cost.category === 'SUPPLIES');
-
-    // Calculate costs for each order
-    const orderCalculations: OrderCostCalculation[] = orders.map(order => {
-      let estimatedCost = 0;
-
-      // Base coffee cost (assume 1-2 shots per drink)
-      const baseShotsNeeded = 1 + order.extraShots;
-      const coffeeCost = coffeeCosts.find(cost => 
-        cost.itemName.toLowerCase().includes('coffee') || 
-        cost.itemName.toLowerCase().includes('bean')
+    // Calculate usage analytics for each inventory item
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const usageAnalysis: InventoryUsageAnalysis[] = inventoryItems.map(item => {
+      const totalUsed = item.initialQuantity - item.currentStock;
+      
+      // Calculate usage rate based on recent quantity logs
+      const recentLogs = item.quantityLogs.filter(log => 
+        log.createdAt >= thirtyDaysAgo && log.changeReason !== 'initial_stock'
       );
-      if (coffeeCost) {
-        estimatedCost += coffeeCost.unitCost * baseShotsNeeded;
-      }
-
-      // Milk cost (assume 6oz for most drinks)
-      const milkCost = milkCosts.find(cost => 
-        cost.itemName.toLowerCase().includes(order.milk.toLowerCase())
-      );
-      if (milkCost) {
-        estimatedCost += milkCost.unitCost * 0.75; // 6oz = ~0.75 cups
-      }
-
-      // Syrup costs
-      if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
-        (order.syrups as unknown as SyrupSelection[]).forEach((syrup) => {
-          const syrupCost = syrupCosts.find(cost => 
-            cost.itemName.toLowerCase().includes(syrup.syrupName.toLowerCase())
-          );
-          if (syrupCost) {
-            // Cost per pump (assuming ~0.5oz per pump)
-            estimatedCost += syrupCost.unitCost * (syrup.pumps * 0.5);
-          }
-        });
-      }
-
-      // Labor cost removed as requested
-
-      // Supply costs (cups, lids, etc. - fixed cost per order)
-      const supplyCost = supplyCosts.find(cost => 
-        cost.itemName.toLowerCase().includes('cup') || 
-        cost.itemName.toLowerCase().includes('supply')
-      );
-      if (supplyCost) {
-        estimatedCost += supplyCost.unitCost;
-      }
-
-      const profit = order.price - estimatedCost;
-      const margin = order.price > 0 ? (profit / order.price) * 100 : 0;
+      
+      // Calculate average daily usage
+      const totalUsageInPeriod = recentLogs
+        .filter(log => log.changeAmount < 0) // Only negative changes (usage)
+        .reduce((sum, log) => sum + Math.abs(log.changeAmount), 0);
+      
+      const daysWithData = Math.max(1, Math.floor((now.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24)));
+      const usageRate = totalUsageInPeriod / daysWithData;
+      
+      // Calculate days of stock left
+      const daysOfStockLeft = usageRate > 0 ? Math.floor(item.currentStock / usageRate) : Infinity;
+      
+      // Check if reorder is needed
+      const needsReorder = item.reorderLevel ? item.currentStock <= item.reorderLevel : false;
 
       return {
-        orderId: order.id,
-        revenue: order.price,
-        estimatedCost,
-        profit,
-        margin,
+        itemId: item.id,
+        itemName: item.itemName,
+        category: item.category,
+        initialQuantity: item.initialQuantity,
+        currentStock: item.currentStock,
+        totalUsed,
+        usageRate,
+        daysOfStockLeft: daysOfStockLeft === Infinity ? -1 : daysOfStockLeft, // -1 means no usage detected
+        needsReorder,
       };
     });
 
-    // Calculate summary statistics
-    const totalRevenue = orderCalculations.reduce((sum, calc) => sum + calc.revenue, 0);
-    const totalCosts = orderCalculations.reduce((sum, calc) => sum + calc.estimatedCost, 0);
-    const totalProfit = totalRevenue - totalCosts;
-    const averageMargin = orderCalculations.length > 0 
-      ? orderCalculations.reduce((sum, calc) => sum + calc.margin, 0) / orderCalculations.length
-      : 0;
-
-    // Calculate profit by time periods
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // Calculate time-based metrics
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
     const recentOrders = orders.filter(order => order.createdAt >= thirtyDaysAgo);
     const weeklyOrders = orders.filter(order => order.createdAt >= sevenDaysAgo);
 
-    const monthlyRevenue = recentOrders.reduce((sum, order) => sum + order.price, 0);
-    const weeklyRevenue = weeklyOrders.reduce((sum, order) => sum + order.price, 0);
+    // Group inventory by category for summary
+    const inventoryByCategory = {
+      coffee: usageAnalysis.filter(item => item.category === 'COFFEE_BEANS'),
+      milk: usageAnalysis.filter(item => item.category === 'MILK'),
+      syrups: usageAnalysis.filter(item => item.category === 'SYRUP'),
+      supplies: usageAnalysis.filter(item => item.category === 'SUPPLIES'),
+      equipment: usageAnalysis.filter(item => item.category === 'EQUIPMENT'),
+      other: usageAnalysis.filter(item => item.category === 'OTHER'),
+    };
 
-    // Estimate monthly and weekly costs
-    const monthlyCostEstimate = recentOrders.length > 0 
-      ? (totalCosts / orderCalculations.length) * recentOrders.length
-      : 0;
-    const weeklyCostEstimate = weeklyOrders.length > 0 
-      ? (totalCosts / orderCalculations.length) * weeklyOrders.length
-      : 0;
+    // Calculate quantity summary
+    const totalCurrentStock = usageAnalysis.reduce((sum, item) => sum + item.currentStock, 0);
+    const totalInitialStock = usageAnalysis.reduce((sum, item) => sum + item.initialQuantity, 0);
+    const totalUsed = usageAnalysis.reduce((sum, item) => sum + item.totalUsed, 0);
+    const lowStockItems = usageAnalysis.filter(item => item.needsReorder).length;
 
     return NextResponse.json({
       success: true,
       data: {
         summary: {
-          totalRevenue,
-          totalCosts,
-          totalProfit,
-          averageMargin,
-          totalOrders: orderCalculations.length,
+          totalItems: inventoryItems.length,
+          totalCurrentStock,
+          totalInitialStock,
+          totalUsed,
+          lowStockItems,
+          averageUsageRate: usageAnalysis.length > 0 
+            ? usageAnalysis.reduce((sum, item) => sum + item.usageRate, 0) / usageAnalysis.length 
+            : 0,
         },
         periods: {
           monthly: {
-            revenue: monthlyRevenue,
-            estimatedCosts: monthlyCostEstimate,
-            estimatedProfit: monthlyRevenue - monthlyCostEstimate,
             orders: recentOrders.length,
+            revenue: recentOrders.reduce((sum, order) => sum + order.price, 0),
+            totalQuantityUsed: inventoryItems.reduce((sum, item) => {
+              const monthlyUsage = item.quantityLogs
+                .filter(log => log.createdAt >= thirtyDaysAgo && log.changeAmount < 0)
+                .reduce((usage, log) => usage + Math.abs(log.changeAmount), 0);
+              return sum + monthlyUsage;
+            }, 0),
           },
           weekly: {
-            revenue: weeklyRevenue,
-            estimatedCosts: weeklyCostEstimate,
-            estimatedProfit: weeklyRevenue - weeklyCostEstimate,
             orders: weeklyOrders.length,
+            revenue: weeklyOrders.reduce((sum, order) => sum + order.price, 0),
+            totalQuantityUsed: inventoryItems.reduce((sum, item) => {
+              const weeklyUsage = item.quantityLogs
+                .filter(log => log.createdAt >= sevenDaysAgo && log.changeAmount < 0)
+                .reduce((usage, log) => usage + Math.abs(log.changeAmount), 0);
+              return sum + weeklyUsage;
+            }, 0),
           },
         },
-        costBreakdown: {
-          coffee: coffeeCosts.reduce((sum, cost) => sum + cost.unitCost, 0),
-          milk: milkCosts.reduce((sum, cost) => sum + cost.unitCost, 0),
-          syrups: syrupCosts.reduce((sum, cost) => sum + cost.unitCost, 0),
-          supplies: supplyCosts.reduce((sum, cost) => sum + cost.unitCost, 0),
+        quantityBreakdown: {
+          coffee: inventoryByCategory.coffee.reduce((sum, item) => sum + item.currentStock, 0),
+          milk: inventoryByCategory.milk.reduce((sum, item) => sum + item.currentStock, 0),
+          syrups: inventoryByCategory.syrups.reduce((sum, item) => sum + item.currentStock, 0),
+          supplies: inventoryByCategory.supplies.reduce((sum, item) => sum + item.currentStock, 0),
         },
         inventory: {
-          totalInventoryCost: inventoryCosts.reduce((sum, cost) => sum + cost.unitCost, 0),
-          totalItems: inventoryCosts.length,
+          totalItems: inventoryItems.length,
           byCategory: {
-            coffee: coffeeCosts.length,
-            milk: milkCosts.length,
-            syrups: syrupCosts.length,
-            supplies: supplyCosts.length,
-            equipment: inventoryCosts.filter(cost => cost.category === 'EQUIPMENT').length,
-            other: inventoryCosts.filter(cost => cost.category === 'OTHER').length,
+            coffee: inventoryByCategory.coffee.length,
+            milk: inventoryByCategory.milk.length,
+            syrups: inventoryByCategory.syrups.length,
+            supplies: inventoryByCategory.supplies.length,
+            equipment: inventoryByCategory.equipment.length,
+            other: inventoryByCategory.other.length,
           },
         },
-        recentOrders: orderCalculations.slice(0, 10), // Last 10 orders
+        usageAnalysis: usageAnalysis.slice(0, 10), // Top 10 items for detailed view
+        lowStockItems: usageAnalysis.filter(item => item.needsReorder),
       },
     });
   } catch (error) {
-    console.error('Error calculating profit analytics:', error);
+    console.error('Error calculating inventory usage analytics:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to calculate profit analytics' },
+      { success: false, error: 'Failed to calculate inventory usage analytics' },
       { status: 500 }
     );
   }

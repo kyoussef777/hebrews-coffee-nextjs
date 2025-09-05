@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AnalyticsData, WaitTimeThresholds, ProfitAnalytics } from '@/types';
+import { AnalyticsData, WaitTimeThresholds, UsageAnalytics } from '@/types';
 import { Settings, Download, TrendingUp, Coffee, DollarSign, Clock, Target, Package } from 'lucide-react';
 import OrdersOverTimeChart from './OrdersOverTimeChart';
 
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [profitAnalytics, setProfitAnalytics] = useState<ProfitAnalytics | null>(null);
+  const [usageAnalytics, setUsageAnalytics] = useState<UsageAnalytics | null>(null);
   const [thresholds, setThresholds] = useState<WaitTimeThresholds>({ yellow: 5, red: 10 });
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -15,7 +15,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     loadAnalytics();
-    loadProfitAnalytics();
+    loadUsageAnalytics();
     loadThresholds();
   }, []);
 
@@ -36,15 +36,15 @@ export default function AnalyticsDashboard() {
     }
   };
 
-  const loadProfitAnalytics = async () => {
+  const loadUsageAnalytics = async () => {
     try {
       const response = await fetch('/api/analytics/profit');
       const data = await response.json();
       if (data.success) {
-        setProfitAnalytics(data.data);
+        setUsageAnalytics(data.data);
       }
     } catch (error) {
-      console.error('Error loading profit analytics:', error);
+      console.error('Error loading usage analytics:', error);
     }
   };
 
@@ -198,33 +198,33 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Profit Analytics */}
-      {profitAnalytics && (
+      {/* Usage Analytics */}
+      {usageAnalytics && (
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900">Profit & Cost Analysis</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Inventory Usage & Stock Analysis</h2>
           
-          {/* Profit Metrics */}
+          {/* Usage Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Package className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-blue-900">{usageAnalytics.summary.totalItems}</div>
+                  <div className="text-sm text-blue-700">Total Items</div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm border border-green-200 p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <Target className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-green-900">${profitAnalytics.summary.totalProfit.toFixed(2)}</div>
-                  <div className="text-sm text-green-700">Total Profit</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg shadow-sm border border-emerald-200 p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <TrendingUp className="h-8 w-8 text-emerald-600" />
-                </div>
-                <div className="ml-4">
-                  <div className="text-2xl font-bold text-emerald-900">${(profitAnalytics.summary.totalRevenue - (profitAnalytics.inventory?.totalInventoryCost || 0)).toFixed(2)}</div>
-                  <div className="text-sm text-emerald-700">Net Profit</div>
+                  <div className="text-2xl font-bold text-green-900">{usageAnalytics.summary.totalCurrentStock}</div>
+                  <div className="text-sm text-green-700">Current Stock</div>
                 </div>
               </div>
             </div>
@@ -232,50 +232,114 @@ export default function AnalyticsDashboard() {
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg shadow-sm border border-amber-200 p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <Package className="h-8 w-8 text-amber-600" />
+                  <TrendingUp className="h-8 w-8 text-amber-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-amber-900">${(profitAnalytics.inventory?.totalInventoryCost || 0).toFixed(2)}</div>
-                  <div className="text-sm text-amber-700">Inventory Cost</div>
+                  <div className="text-2xl font-bold text-amber-900">{usageAnalytics.summary.totalUsed}</div>
+                  <div className="text-sm text-amber-700">Total Used</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg shadow-sm border border-purple-200 p-6">
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg shadow-sm border border-red-200 p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                  <Package className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <div className="text-2xl font-bold text-purple-900">${profitAnalytics.periods.weekly.estimatedProfit.toFixed(2)}</div>
-                  <div className="text-sm text-purple-700">Weekly Profit</div>
+                  <div className="text-2xl font-bold text-red-900">{usageAnalytics.summary.lowStockItems}</div>
+                  <div className="text-sm text-red-700">Low Stock Items</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Cost Breakdown */}
+          {/* Period Usage */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Usage</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Orders:</span>
+                  <span className="text-lg font-bold text-gray-900">{usageAnalytics.periods.weekly.orders}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Revenue:</span>
+                  <span className="text-lg font-bold text-green-600">${usageAnalytics.periods.weekly.revenue.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Quantity Used:</span>
+                  <span className="text-lg font-bold text-blue-600">{usageAnalytics.periods.weekly.totalQuantityUsed}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Usage</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Orders:</span>
+                  <span className="text-lg font-bold text-gray-900">{usageAnalytics.periods.monthly.orders}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Revenue:</span>
+                  <span className="text-lg font-bold text-green-600">${usageAnalytics.periods.monthly.revenue.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Quantity Used:</span>
+                  <span className="text-lg font-bold text-blue-600">{usageAnalytics.periods.monthly.totalQuantityUsed}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Inventory Breakdown */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Cost Breakdown</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Stock by Category</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-amber-600">${(profitAnalytics.costBreakdown?.coffee || 0).toFixed(2)}</div>
+                <div className="text-2xl font-bold text-amber-600">{usageAnalytics.quantityBreakdown?.coffee || 0}</div>
                 <div className="text-sm text-gray-600">Coffee</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">${(profitAnalytics.costBreakdown?.milk || 0).toFixed(2)}</div>
+                <div className="text-2xl font-bold text-blue-600">{usageAnalytics.quantityBreakdown?.milk || 0}</div>
                 <div className="text-sm text-gray-600">Milk</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">${(profitAnalytics.costBreakdown?.syrups || 0).toFixed(2)}</div>
+                <div className="text-2xl font-bold text-purple-600">{usageAnalytics.quantityBreakdown?.syrups || 0}</div>
                 <div className="text-sm text-gray-600">Syrups</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">${(profitAnalytics.costBreakdown?.supplies || 0).toFixed(2)}</div>
+                <div className="text-2xl font-bold text-gray-600">{usageAnalytics.quantityBreakdown?.supplies || 0}</div>
                 <div className="text-sm text-gray-600">Supplies</div>
               </div>
             </div>
           </div>
+
+          {/* Low Stock Alerts */}
+          {usageAnalytics.lowStockItems && usageAnalytics.lowStockItems.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-red-800 mb-4">⚠️ Low Stock Alerts</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {usageAnalytics.lowStockItems.slice(0, 6).map((item) => (
+                  <div key={item.itemId} className="bg-white border border-red-300 rounded-md p-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-medium text-gray-900">{item.itemName}</div>
+                        <div className="text-sm text-gray-600">{item.category}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-red-600">{item.currentStock}</div>
+                        <div className="text-xs text-gray-500">
+                          {item.daysOfStockLeft >= 0 ? `${item.daysOfStockLeft} days left` : 'No usage data'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       )}
