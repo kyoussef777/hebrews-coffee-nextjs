@@ -18,6 +18,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Count the number of orders for this customer
+    const orderCount = await prisma.order.count({
+      where: {
+        customerName: customerName.trim()
+      }
+    });
+
     const participant = await prisma.raffleParticipant.upsert({
       where: {
         customerName_phoneNumber: {
@@ -26,24 +33,26 @@ export async function POST(request: NextRequest) {
         }
       },
       update: {
+        entries: orderCount,
         updatedAt: new Date()
       },
       create: {
         customerName: customerName.trim(),
-        phoneNumber: phoneNumber.trim()
+        phoneNumber: phoneNumber.trim(),
+        entries: orderCount
       }
     });
 
     return NextResponse.json({
       success: true,
       data: participant,
-      message: 'Successfully joined the raffle!'
+      message: 'Successfully joined the giveaway!'
     });
 
   } catch (error) {
-    console.error('Error adding raffle participant:', error);
+    console.error('Error adding giveaway participant:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to join raffle' },
+      { success: false, message: 'Failed to join giveaway' },
       { status: 500 }
     );
   }
@@ -70,7 +79,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching raffle participants:', error);
+    console.error('Error fetching giveaway participants:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to fetch participants' },
       { status: 500 }

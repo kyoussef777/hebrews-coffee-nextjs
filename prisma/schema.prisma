@@ -167,12 +167,13 @@ enum InventoryCategory {
   OTHER         @map("other")
 }
 
-/// Defines user roles.  STAFF users have limited permissions; ADMIN users can access all areas including
-/// analytics, inventory management and reset actions.
+/// Giveaway participants track customers who have entered the t-shirt giveaway.
+/// Entries are based on the number of orders placed - more orders = more chances to win.
 model RaffleParticipant {
   id          String   @id @default(cuid())
   customerName String  @map("customer_name")
   phoneNumber  String  @map("phone_number")
+  entries     Int      @default(1) // Number of entries based on orders
   hasWon      Boolean  @default(false) @map("has_won")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

@@ -44,7 +44,7 @@ export default function RaffleManager() {
 
   const handleDrawWinner = async () => {
     if (eligibleParticipants.length === 0) {
-      alert('No eligible participants for the raffle!');
+      alert('No eligible participants for the giveaway!');
       return;
     }
 
@@ -82,11 +82,11 @@ export default function RaffleManager() {
         setLastWinner(null);
         setShowConfirmReset(false);
       } else {
-        alert(result.message || 'Failed to reset raffle');
+        alert(result.message || 'Failed to reset giveaway');
       }
     } catch (error) {
-      console.error('Error resetting raffle:', error);
-      alert('Failed to reset raffle');
+      console.error('Error resetting giveaway:', error);
+      alert('Failed to reset giveaway');
     } finally {
       setIsResetting(false);
     }
@@ -119,11 +119,12 @@ export default function RaffleManager() {
   }
 
   const winners = participants.filter(p => p.hasWon);
+  const totalEntries = eligibleParticipants.reduce((sum, p) => sum + p.entries, 0);
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -131,6 +132,16 @@ export default function RaffleManager() {
               <p className="text-2xl font-bold text-green-900">{eligibleParticipants.length}</p>
             </div>
             <Users className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+        
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-600">Total Entries</p>
+              <p className="text-2xl font-bold text-purple-900">{totalEntries}</p>
+            </div>
+            <Trophy className="h-8 w-8 text-purple-600" />
           </div>
         </div>
         
@@ -173,7 +184,7 @@ export default function RaffleManager() {
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           onClick={handleDrawWinner}
           disabled={isDrawing || eligibleParticipants.length === 0}
@@ -187,7 +198,7 @@ export default function RaffleManager() {
           ) : (
             <>
               <Trophy className="h-4 w-4 mr-2" />
-              Draw Winner ({eligibleParticipants.length} eligible)
+              Draw Winner ({totalEntries} total entries)
             </>
           )}
         </button>
@@ -198,7 +209,7 @@ export default function RaffleManager() {
           className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
         >
           <RotateCcw className="h-4 w-4 mr-2" />
-          Reset Raffle
+          Reset Giveaway
         </button>
 
         <button
@@ -217,34 +228,44 @@ export default function RaffleManager() {
           <h3 className="text-lg font-semibold text-gray-900">
             Eligible Participants ({eligibleParticipants.length})
           </h3>
-          <p className="text-sm text-gray-600">These participants can win in the next draw</p>
+          <p className="text-sm text-gray-600">These participants can win in the next draw. More orders = more entries!</p>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="p-4">
           {eligibleParticipants.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="text-center py-8 text-gray-500">
               <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p>No eligible participants</p>
               <p className="text-sm">Previous winners are excluded from future draws</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {eligibleParticipants.map((participant, index) => (
-                <div key={participant.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-green-700">{index + 1}</span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{participant.customerName}</p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {formatPhoneNumber(participant.phoneNumber)}
-                        </div>
+            <div className="space-y-3">
+              {eligibleParticipants.map((participant) => (
+                <div 
+                  key={participant.id} 
+                  className="border rounded-lg p-4 bg-green-50 border-green-200 hover:bg-green-100 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{participant.customerName}</h3>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="h-3 w-3 mr-1" />
+                        {formatPhoneNumber(participant.phoneNumber)}
                       </div>
                     </div>
-                    <div className="flex items-center text-xs text-gray-500">
+                    
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className="flex-shrink-0 w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold">{participant.entries}</span>
+                      </div>
+                      <div className="text-xs text-green-700 font-medium">
+                        {participant.entries === 1 ? 'entry' : 'entries'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
                       Joined {formatDate(participant.createdAt)}
                     </div>
@@ -266,24 +287,34 @@ export default function RaffleManager() {
             <p className="text-sm text-gray-600">These participants have already won and are excluded from future draws</p>
           </div>
           
-          <div className="overflow-x-auto">
-            <div className="divide-y divide-gray-200">
+          <div className="p-4">
+            <div className="space-y-3">
               {winners.map((winner) => (
-                <div key={winner.id} className="p-4 bg-amber-50 hover:bg-amber-100 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <Trophy className="h-5 w-5 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{winner.customerName}</p>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {formatPhoneNumber(winner.phoneNumber)}
-                        </div>
+                <div 
+                  key={winner.id} 
+                  className="border rounded-lg p-4 bg-amber-50 border-amber-200 hover:bg-amber-100 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{winner.customerName}</h3>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="h-3 w-3 mr-1" />
+                        {formatPhoneNumber(winner.phoneNumber)}
                       </div>
                     </div>
-                    <div className="flex items-center text-xs text-gray-500">
+                    
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className="flex-shrink-0">
+                        <Trophy className="h-8 w-8 text-amber-600" />
+                      </div>
+                      <div className="text-xs text-amber-700 font-medium">
+                        Winner
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
                       Won {formatDate(winner.updatedAt)}
                     </div>
@@ -301,7 +332,7 @@ export default function RaffleManager() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Reset Raffle</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Reset Giveaway</h3>
               </div>
               
               <div className="mb-6">
@@ -329,7 +360,7 @@ export default function RaffleManager() {
                   ) : (
                     <>
                       <RotateCcw className="h-4 w-4 mr-2" />
-                      Reset Raffle
+                      Reset Giveaway
                     </>
                   )}
                 </button>

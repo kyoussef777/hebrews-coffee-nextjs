@@ -9,12 +9,12 @@ export default function DatabaseReset() {
   const [password, setPassword] = useState('');
   const [resetOrders, setResetOrders] = useState(false);
   const [resetInventory, setResetInventory] = useState(false);
-  const [resetRaffle, setResetRaffle] = useState(false);
+  const [resetGiveaway, setResetGiveaway] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleResetRequest = () => {
-    if (!resetOrders && !resetInventory && !resetRaffle) {
+    if (!resetOrders && !resetInventory && !resetGiveaway) {
       setError('Please select at least one option to reset');
       return;
     }
@@ -42,7 +42,7 @@ export default function DatabaseReset() {
           password,
           resetOrders,
           resetInventory,
-          resetRaffle
+          resetGiveaway
         }),
       });
 
@@ -56,7 +56,7 @@ export default function DatabaseReset() {
         setPassword('');
         setResetOrders(false);
         setResetInventory(false);
-        setResetRaffle(false);
+        setResetGiveaway(false);
       } else {
         setError(data.error || 'Failed to reset database');
       }
@@ -124,12 +124,12 @@ export default function DatabaseReset() {
            <label className="flex items-center space-x-3">
             <input
               type="checkbox"
-              checked={resetRaffle}
-              onChange={(e) => setResetRaffle(e.target.checked)}
+              checked={resetGiveaway}
+              onChange={(e) => setResetGiveaway(e.target.checked)}
               className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
             />
-            <span className="text-sm font-medium text-gray-700">Reset Raffle</span>
-            <span className="text-sm text-gray-500">(Delete all raffle records)</span>
+            <span className="text-sm font-medium text-gray-700">Reset Giveaway</span>
+            <span className="text-sm text-gray-500">(Delete all giveaway records)</span>
           </label>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function DatabaseReset() {
       {/* Action Button */}
       <button
         onClick={handleResetRequest}
-        disabled={isLoading || (!resetOrders && !resetInventory && !resetRaffle)}
+        disabled={isLoading || (!resetOrders && !resetInventory && !resetGiveaway)}
         className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
       >
         <Trash2 className="h-4 w-4" />

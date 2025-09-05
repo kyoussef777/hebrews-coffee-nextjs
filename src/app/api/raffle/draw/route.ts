@@ -22,9 +22,25 @@ export async function POST() {
       );
     }
 
-    // Randomly select a winner
-    const randomIndex = Math.floor(Math.random() * eligibleParticipants.length);
-    const winner = eligibleParticipants[randomIndex];
+    // Create a weighted list based on entries
+    const weightedParticipants: string[] = [];
+    eligibleParticipants.forEach(participant => {
+      for (let i = 0; i < participant.entries; i++) {
+        weightedParticipants.push(participant.id);
+      }
+    });
+
+    if (weightedParticipants.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'No entries found for eligible participants' },
+        { status: 400 }
+      );
+    }
+
+    // Randomly select from weighted list
+    const randomIndex = Math.floor(Math.random() * weightedParticipants.length);
+    const winnerId = weightedParticipants[randomIndex];
+    const winner = eligibleParticipants.find(p => p.id === winnerId)!;
 
     // Mark the winner as having won
     const updatedWinner = await prisma.raffleParticipant.update({
@@ -39,9 +55,9 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Error drawing raffle winner:', error);
+    console.error('Error drawing giveaway winner:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to draw raffle winner' },
+      { success: false, message: 'Failed to draw giveaway winner' },
       { status: 500 }
     );
   }

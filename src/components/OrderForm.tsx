@@ -37,9 +37,9 @@ export default function OrderForm() {
   const [labelConfigs, setLabelConfigs] = useState<LabelSettings[]>([]);
   const [selectedLabelConfig, setSelectedLabelConfig] = useState<string>('default');
   const [defaultConfig, setDefaultConfig] = useState<LabelSettings | null>(null);
-  const [showRaffleOptIn, setShowRaffleOptIn] = useState(false);
-  const [rafflePhoneNumber, setRafflePhoneNumber] = useState('');
-  const [isSubmittingRaffle, setIsSubmittingRaffle] = useState(false);
+  const [showGiveawayOptIn, setShowGiveawayOptIn] = useState(false);
+  const [giveawayPhoneNumber, setGiveawayPhoneNumber] = useState('');
+  const [isSubmittingGiveaway, setIsSubmittingGiveaway] = useState(false);
   const [extraPricing, setExtraPricing] = useState({
     extraShotPrice: 1.00,
     coldFoamPrice: 1.00,
@@ -193,43 +193,43 @@ export default function OrderForm() {
     setCreatedOrder(null);
   };
 
-  const handleRaffleOptIn = () => {
-    setShowRaffleOptIn(true);
+  const handleGiveawayOptIn = () => {
+    setShowGiveawayOptIn(true);
   };
 
-  const handleRaffleSubmit = async () => {
-    if (!rafflePhoneNumber.trim() || !createdOrder) return;
+  const handleGiveawaySubmit = async () => {
+    if (!giveawayPhoneNumber.trim() || !createdOrder) return;
     
-    setIsSubmittingRaffle(true);
+    setIsSubmittingGiveaway(true);
     try {
       const response = await fetch('/api/raffle/participants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: createdOrder.customerName,
-          phoneNumber: rafflePhoneNumber.trim()
+          phoneNumber: giveawayPhoneNumber.trim()
         }),
       });
 
       if (response.ok) {
-        setShowRaffleOptIn(false);
-        setRafflePhoneNumber('');
+        setShowGiveawayOptIn(false);
+        setGiveawayPhoneNumber('');
         // Could show success message here
       } else {
         const error = await response.json();
-        console.error('Failed to join raffle:', error.message);
+        console.error('Failed to join giveaway:', error.message);
         // Could show error message here
       }
     } catch (error) {
-      console.error('Error joining raffle:', error);
+      console.error('Error joining giveaway:', error);
     } finally {
-      setIsSubmittingRaffle(false);
+      setIsSubmittingGiveaway(false);
     }
   };
 
-  const closeRaffleModal = () => {
-    setShowRaffleOptIn(false);
-    setRafflePhoneNumber('');
+  const closeGiveawayModal = () => {
+    setShowGiveawayOptIn(false);
+    setGiveawayPhoneNumber('');
   };
 
   const addSyrup = (syrupName: string) => {
@@ -716,13 +716,13 @@ export default function OrderForm() {
                 
                 <div className="border-t pt-3">
                   <button
-                    onClick={handleRaffleOptIn}
+                    onClick={handleGiveawayOptIn}
                     className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                   >
-                    🎉 Enter Raffle!
+                    🎉 Enter Giveaway!
                   </button>
                   <p className="text-xs text-gray-500 text-center mt-1">
-                    Ask if the customer wants to sign up for the t-shirt raffle! Phone number required.
+                    Ask if the customer wants to sign up for the t-shirt giveaway! Each order counts as one entry.
                   </p>
                 </div>
               </div>
@@ -731,15 +731,15 @@ export default function OrderForm() {
         </div>
       )}
 
-      {/* Raffle Opt-in Modal */}
-      {showRaffleOptIn && createdOrder && (
+      {/* Giveaway Opt-in Modal */}
+      {showGiveawayOptIn && createdOrder && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">🎉 Enter Raffle</h3>
+                <h3 className="text-lg font-semibold text-gray-900">🎉 Enter Giveaway</h3>
                 <button
-                  onClick={closeRaffleModal}
+                  onClick={closeGiveawayModal}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-5 w-5" />
@@ -750,7 +750,7 @@ export default function OrderForm() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-sm text-green-800">
                     <div className="font-semibold mb-1">Win Free Drinks!</div>
-                    <p>Enter your phone number to join our raffle. Winners get a free shirt!</p>
+                    <p>Enter your phone number to join our giveaway. Each order gives you one entry - the more orders you place, the better your chances!</p>
                   </div>
                 </div>
                 
@@ -759,42 +759,42 @@ export default function OrderForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="rafflePhone" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="giveawayPhone" className="block text-sm font-semibold text-gray-900 mb-2">
                     Phone Number
                   </label>
                   <input
-                    id="rafflePhone"
+                    id="giveawayPhone"
                     type="tel"
                     required
-                    value={rafflePhoneNumber}
-                    onChange={(e) => setRafflePhoneNumber(e.target.value)}
+                    value={giveawayPhoneNumber}
+                    onChange={(e) => setGiveawayPhoneNumber(e.target.value)}
                     className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
                     placeholder="(555) 123-4567"
                     maxLength={20}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    We&apos;ll only use this to contact raffle winners. No spam!
+                    We&apos;ll only use this to contact giveaway winners. No spam!
                   </p>
                 </div>
               </div>
               
               <div className="flex space-x-3">
                 <button
-                  onClick={handleRaffleSubmit}
-                  disabled={isSubmittingRaffle || !rafflePhoneNumber.trim()}
+                  onClick={handleGiveawaySubmit}
+                  disabled={isSubmittingGiveaway || !giveawayPhoneNumber.trim()}
                   className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
                 >
-                  {isSubmittingRaffle ? (
+                  {isSubmittingGiveaway ? (
                     <div className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Joining...
                     </div>
                   ) : (
-                    'Join Raffle'
+                    'Join Giveaway'
                   )}
                 </button>
                 <button
-                  onClick={closeRaffleModal}
+                  onClick={closeGiveawayModal}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   Skip

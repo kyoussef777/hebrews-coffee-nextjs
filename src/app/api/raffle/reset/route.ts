@@ -21,9 +21,9 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Error resetting raffle:', error);
+    console.error('Error resetting giveaway:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to reset raffle' },
+      { success: false, message: 'Failed to reset giveaway' },
       { status: 500 }
     );
   }

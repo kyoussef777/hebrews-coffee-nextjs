@@ -8,12 +8,12 @@ export async function POST(request: NextRequest) {
     // Only admins can reset the database
     const session = await requireAdmin();
     const body = await parseJson(request);
-    const { password, resetOrders, resetInventory, resetRaffle } = body;
+    const { password, resetOrders, resetInventory, resetGiveaway } = body;
 
     if (!password) {
       return errorResponse('Password is required', 400);
     }
-    if (!resetOrders && !resetInventory && !resetRaffle) {
+    if (!resetOrders && !resetInventory && !resetGiveaway) {
       return errorResponse('At least one reset option must be selected', 400);
     }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform database reset operations
-    const results = { ordersDeleted: 0, inventoryDeleted: 0, raffleDeleted: 0 };
+    const results = { ordersDeleted: 0, inventoryDeleted: 0, giveawayDeleted: 0 };
     if (resetOrders) {
       const deletedOrders = await prisma.order.deleteMany({});
       results.ordersDeleted = deletedOrders.count;
@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
       const deletedInventory = await prisma.inventoryCost.deleteMany({});
       results.inventoryDeleted = deletedInventory.count;
     }
-     if (resetRaffle) {
-      const deletedRaffle = await prisma.raffleParticipant.deleteMany({});
-      results.raffleDeleted = deletedRaffle.count;
+     if (resetGiveaway) {
+      const deletedGiveaway = await prisma.raffleParticipant.deleteMany({});
+      results.giveawayDeleted = deletedGiveaway.count;
     }
 
     return NextResponse.json({ success: true, data: results, message: 'Database reset completed successfully' });

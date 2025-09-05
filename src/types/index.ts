@@ -177,6 +177,7 @@ export interface RaffleParticipant {
   id: string;
   customerName: string;
   phoneNumber: string;
+  entries: number;
   hasWon: boolean;
   createdAt: Date;
   updatedAt: Date;
