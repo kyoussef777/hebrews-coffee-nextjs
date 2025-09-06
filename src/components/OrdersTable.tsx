@@ -313,7 +313,7 @@ export default function OrdersTable() {
                         {order.milk}, {order.syrups && order.syrups.length > 0 ? order.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}
                       </div>
                       <div className="text-base text-gray-700">
-                        {order.foam}, {order.temperature}
+                        {order.foam}
                         {order.extraShots > 0 && <span className="ml-1 text-amber-600 font-medium">+ {order.extraShots} Extra Shot{order.extraShots > 1 ? 's' : ''}</span>}
                       </div>
                       {order.notes && (

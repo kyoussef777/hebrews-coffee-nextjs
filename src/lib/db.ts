@@ -79,11 +79,6 @@ export async function initializeDatabase() {
         { itemType: MenuItemType.FOAM, itemName: 'Light Foam', price: null },
         { itemType: MenuItemType.FOAM, itemName: 'No Foam', price: null },
         { itemType: MenuItemType.FOAM, itemName: 'Cold Foam', price: null },
-        
-        // Temperature options
-        { itemType: MenuItemType.TEMPERATURE, itemName: 'Hot', price: null },
-        { itemType: MenuItemType.TEMPERATURE, itemName: 'Iced', price: null },
-        { itemType: MenuItemType.TEMPERATURE, itemName: 'Extra Hot', price: null },
       ];
       
       await prisma.menuConfig.createMany({

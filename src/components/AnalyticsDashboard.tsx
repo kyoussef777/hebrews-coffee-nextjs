@@ -441,20 +441,6 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Temperature Split */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">🌡️ Temperature Split</h3>
-          <div className="space-y-2">
-            {Object.entries(analytics.temperatureCounts)
-              .sort(([,a], [,b]) => b - a)
-              .map(([temp, count]) => (
-                <div key={temp} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">{temp}</span>
-                  <span className="text-sm font-medium text-gray-900">{count}</span>
-                </div>
-              ))}
-          </div>
-        </div>
       </div>
 
       {/* Wait Time Settings Modal */}

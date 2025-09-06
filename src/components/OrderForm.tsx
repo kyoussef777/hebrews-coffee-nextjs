@@ -12,7 +12,6 @@ export default function OrderForm() {
     milk: '',
     syrups: [],
     foam: '',
-    temperature: 'Hot',
     extraShots: 0,
     notes: '',
   });
@@ -22,13 +21,11 @@ export default function OrderForm() {
     milks: MenuConfig[];
     syrups: MenuConfig[];
     foams: MenuConfig[];
-    temperatures: MenuConfig[];
   }>({
     drinks: [],
     milks: [],
     syrups: [],
     foams: [],
-    temperatures: [],
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,8 +178,7 @@ export default function OrderForm() {
           milk: menuItems.milks[0]?.itemName || '',
           syrups: [],
           foam: defaultFoam,
-          temperature: 'Hot',
-          extraShots: 0,
+                extraShots: 0,
           notes: '',
         });
       } else {
@@ -400,28 +396,6 @@ export default function OrderForm() {
             </div>
           </div>
 
-          {/* Temperature Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Temperature
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {menuItems.temperatures.map((temp) => (
-                <button
-                  key={temp.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, temperature: temp.itemName })}
-                  className={`p-3 rounded-lg border-2 text-center transition-all ${
-                    formData.temperature === temp.itemName
-                      ? 'border-amber-500 bg-amber-50 text-amber-900'
-                      : 'border-gray-200 bg-white hover:border-amber-300'
-                  }`}
-                >
-                  <div className="font-bold text-sm">{temp.itemName}</div>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Syrup Selection */}
           <div>
@@ -663,7 +637,7 @@ export default function OrderForm() {
                   <div className="font-semibold text-gray-900">{createdOrder.customerName}</div>
                   <div className="text-sm text-gray-700">{createdOrder.drink}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {createdOrder.milk}, {createdOrder.syrups && createdOrder.syrups.length > 0 ? createdOrder.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}, {createdOrder.foam}, {createdOrder.temperature}
+                    {createdOrder.milk}, {createdOrder.syrups && createdOrder.syrups.length > 0 ? createdOrder.syrups.map(s => `${s.pumps}x ${s.syrupName}`).join(', ') : 'No syrups'}, {createdOrder.foam}
                     {createdOrder.extraShots > 0 && <span className="ml-1 text-amber-600">+ {createdOrder.extraShots} Extra Shot{createdOrder.extraShots > 1 ? 's' : ''}</span>}
                   </div>
                   {createdOrder.notes && (

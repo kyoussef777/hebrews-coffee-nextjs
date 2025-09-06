@@ -31,7 +31,6 @@ model Order {
   milk         String
   syrups       Json?    @default("[]") // Array of {syrupName: string, pumps: number}
   foam         String?
-  temperature  String
   extraShots   Int      @default(0) @map("extra_shots")
   notes        String?
   status       OrderStatus @default(PENDING)
@@ -154,7 +153,6 @@ enum MenuItemType {
   MILK        @map("milk")
   SYRUP       @map("syrup")
   FOAM        @map("foam")
-  TEMPERATURE @map("temperature")
 }
 
 enum InventoryCategory {

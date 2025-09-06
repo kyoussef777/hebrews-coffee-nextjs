@@ -70,12 +70,11 @@ export async function GET(
           break;
         case 'details':
           const details = [];
-          if (order.milk !== 'Whole') details.push(order.milk);
+          if (order.milk) details.push(order.milk);
           if (order.syrups && Array.isArray(order.syrups) && order.syrups.length > 0) {
             details.push((order.syrups as unknown as SyrupSelection[]).map((s) => `${s.pumps}x ${s.syrupName}`).join(', '));
           }
-          if (order.foam !== 'Regular Foam') details.push(order.foam);
-          if (order.temperature !== 'Hot') details.push(order.temperature);
+          if (order.foam && order.foam !== 'No Foam') details.push(order.foam);
           if (order.extraShots > 0) details.push(`${order.extraShots} Extra Shot${order.extraShots > 1 ? 's' : ''}`);
           text = details.join(', ');
           break;

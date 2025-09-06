@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const body: OrderFormData = await request.json();
 
     // Validate required fields
-    if (!body.customerName || !body.drink || !body.milk || !body.temperature) {
+    if (!body.customerName || !body.drink || !body.milk) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
         milk: body.milk,
         syrups: JSON.parse(JSON.stringify(body.syrups || [])),
         foam: body.foam || null,
-        temperature: body.temperature,
         extraShots: body.extraShots || 0,
         notes: body.notes?.trim() || null,
         price: totalPrice,

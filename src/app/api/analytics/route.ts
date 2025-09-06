@@ -38,7 +38,6 @@ export async function GET() {
     const drinkCounts: Record<string, number> = {};
     const milkCounts: Record<string, number> = {};
     const syrupCounts: Record<string, number> = {};
-    const temperatureCounts: Record<string, number> = {};
     const customerCounts: Record<string, number> = {};
 
     completedOrders.forEach(order => {
@@ -60,8 +59,6 @@ export async function GET() {
         syrupCounts[syrupName] = (syrupCounts[syrupName] || 0) + 1;
       }
       
-      // Temperature counts
-      temperatureCounts[order.temperature] = (temperatureCounts[order.temperature] || 0) + 1;
       
       // Customer counts
       customerCounts[order.customerName] = (customerCounts[order.customerName] || 0) + 1;
@@ -102,7 +99,6 @@ export async function GET() {
       drinkCounts,
       milkCounts,
       syrupCounts,
-      temperatureCounts,
       customerCounts,
       mostPopular,
       topCustomers,

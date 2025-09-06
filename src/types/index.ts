@@ -1,6 +1,6 @@
 // Database types matching Prisma schema
 export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
-export type MenuItemType = 'DRINK' | 'MILK' | 'SYRUP' | 'FOAM' | 'TEMPERATURE';
+export type MenuItemType = 'DRINK' | 'MILK' | 'SYRUP' | 'FOAM';
 export type InventoryCategory = 'COFFEE_BEANS' | 'MILK' | 'SYRUP' | 'EQUIPMENT' | 'SUPPLIES' | 'LABOR' | 'OTHER';
 
 export interface SyrupSelection {
@@ -16,7 +16,6 @@ export interface Order {
   milk: string;
   syrups?: SyrupSelection[] | null;
   foam?: string | null;
-  temperature: string;
   extraShots: number;
   notes?: string | null;
   status: OrderStatus;
@@ -60,7 +59,6 @@ export interface OrderFormData {
   milk: string;
   syrups: SyrupSelection[];
   foam?: string;
-  temperature: string;
   extraShots: number;
   notes?: string;
 }
@@ -208,7 +206,6 @@ export interface AnalyticsData {
   drinkCounts: Record<string, number>;
   milkCounts: Record<string, number>;
   syrupCounts: Record<string, number>;
-  temperatureCounts: Record<string, number>;
   topCustomers: Array<{ name: string; count: number }>;
   mostPopular: {
     drink: [string, number];
