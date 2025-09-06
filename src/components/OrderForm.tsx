@@ -110,7 +110,10 @@ export default function OrderForm() {
             setFormData(prev => ({ ...prev, milk: grouped.milks[0].itemName }));
           }
           if (grouped.foams?.length > 0) {
-            setFormData(prev => ({ ...prev, foam: grouped.foams[0].itemName }));
+            // Default to "No Foam" if available, otherwise use first foam option
+            const noFoamOption = grouped.foams.find((foam: MenuConfig) => foam.itemName === 'No Foam');
+            const defaultFoam = noFoamOption ? noFoamOption.itemName : grouped.foams[0].itemName;
+            setFormData(prev => ({ ...prev, foam: defaultFoam }));
           }
         }
       });
@@ -168,12 +171,16 @@ export default function OrderForm() {
         window.dispatchEvent(new CustomEvent('orderCreated'));
         
         // Reset form
+        // Default to "No Foam" if available, otherwise use first foam option
+        const noFoamOption = menuItems.foams.find((foam: MenuConfig) => foam.itemName === 'No Foam');
+        const defaultFoam = noFoamOption ? noFoamOption.itemName : (menuItems.foams[0]?.itemName || '');
+        
         setFormData({
           customerName: '',
           drink: '',
           milk: menuItems.milks[0]?.itemName || '',
           syrups: [],
-          foam: menuItems.foams[0]?.itemName || '',
+          foam: defaultFoam,
           temperature: 'Hot',
           extraShots: 0,
           notes: '',
