@@ -26,7 +26,6 @@ export default function MenuManager() {
     { value: 'MILK', label: 'Milk Options' },
     { value: 'SYRUP', label: 'Syrups' },
     { value: 'FOAM', label: 'Foam Options' },
-    { value: 'TEMPERATURE', label: 'Temperature Options' },
   ];
 
   useEffect(() => {
